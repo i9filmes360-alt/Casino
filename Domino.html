@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dominó Premium</title>
+<style>
+:root{--bg:#1F2CE0;--gold:#d4af37;--ivory:#f4ecd8;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{height:100vh;height:100dvh;display:flex;flex-direction:column;gap:4px;background:radial-gradient(circle at center, #2b39f5 0%, var(--bg) 100%);color:var(--ivory);font-family:'Palatino Linotype',Palatino,Georgia,serif;padding:max(4px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;padding-bottom:4px}
+h1{font-size:clamp(16px,4.5vh,24px);margin:0;color:var(--gold);white-space:nowrap;text-shadow:0 2px 4px rgba(0,0,0,0.8);display:flex;align-items:center;gap:6px}
+.st{display:flex;align-items:center;gap:clamp(6px,1.5vw,14px);font-size:clamp(12px,3.4vh,16px)}
+button{font:inherit;color:var(--ivory);background:linear-gradient(180deg, #2a4035 0%, #1b2b24 100%);border:1px solid #446653;border-radius:8px;padding:clamp(4px,1.2vh,10px) clamp(8px,1.5vw,14px);font-size:clamp(12px,3.2vh,16px);cursor:pointer;touch-action:manipulation;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);transition:all 0.15s ease;font-weight:bold}
+button:hover:not(:disabled){background:linear-gradient(180deg, #3b5c4c 0%, #27402f 100%);border-color:var(--gold);transform:translateY(-1px)}
+button:active:not(:disabled){transform:translateY(1px);box-shadow:none}
+button[hidden]{display:none}
+#go{background:linear-gradient(180deg, #fce181 0%, var(--gold) 100%);color:#1a1405;border:1px solid #fff;font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,0.5);box-shadow:0 3px 6px rgba(0,0,0,0.5);font-size:clamp(14px,3.8vh,20px)}
+#go:hover{background:linear-gradient(180deg, #fff 0%, #e6c250 100%)}
+.game{flex:1;min-height:0;display:flex;gap:8px}
+main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;position:relative}
+
+#pot-display {
+    position: absolute; top: 5px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(180deg, #2a2415 0%, #12100a 100%);
+    border: 3px solid var(--gold);
+    padding: 6px 20px; border-radius: 30px; font-size: clamp(16px, 4.2vh, 24px); font-weight: bold;
+    color: #ffd84d; z-index: 10; box-shadow: 0 6px 15px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,215,0,0.3);
+    pointer-events: none; transition: opacity 0.3s; display: none;
+    text-shadow: 0 2px 4px #000;
+}
+
+#tb{flex:1;min-height:0;width:100%;touch-action:manipulation;user-select:none;-webkit-user-select:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.6))}
+#bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:space-between;font-size:clamp(12px,3.2vh,18px);min-height:clamp(36px,8vh,50px);background:rgba(0,0,0,0.5);border-radius:8px;padding:4px 12px;border:1px solid rgba(255,255,255,0.1);font-weight:bold}
+#msg{flex:1;min-width:0;text-shadow:0 1px 3px #000;line-height:1.2}
+#bt{display:flex;gap:8px;align-items:center}
+.pulse{animation:pl 1s ease-in-out infinite}@keyframes pl{50%{opacity:.4}}
+.chat{display:none;flex-direction:column;width:min(30%,320px);min-width:220px;background:rgba(13, 29, 23, 0.95);backdrop-filter:blur(10px);border:2px solid #5a3a1a;border-radius:8px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
+.game.chopen .chat{display:flex}
+.ch-top,.ch-in{display:flex;gap:4px;padding:8px}.ch-top{border-bottom:1px solid #2c4a3b;background:rgba(0,0,0,0.2)}.ch-in{border-top:1px solid #2c4a3b;background:rgba(0,0,0,0.2)}
+select,input{background:rgba(16, 38, 29, 0.8);color:var(--ivory);border:1px solid #446653;border-radius:4px;font:inherit;padding:8px;min-width:0;outline:none;font-size:16px}
+select:focus,input:focus{border-color:var(--gold)}
+.ch-top select,.ch-in input{flex:1}
+.ch-log{flex:1;min-height:0;overflow-y:auto;padding:8px;font-size:clamp(14px,3.5vh,16px);line-height:1.4;word-break:break-word}
+.cm{margin-bottom:8px;text-shadow:0 1px 2px #000}.cm b{color:var(--gold);margin-right:4px}.cm.me b{color:#7ed9a3}.cm.dm{background:rgba(125,60,152,.3);border-radius:6px;padding:4px 6px;border:1px solid rgba(125,60,152,.5)}.cm.sys{opacity:.8;font-style:italic;text-align:center;margin:8px 0}
+#mpj,#help{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(7, 19, 14, .95);backdrop-filter:blur(5px)}
+#mpj.show,#help.show{display:flex}
+#mpj>div,#help>div{background:linear-gradient(180deg, #1b2b24 0%, #0d1d17 100%);border:2px solid var(--gold);border-radius:12px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,0.8);max-width:500px;line-height:1.6;font-size:clamp(16px,4vh,20px)}
+#mpj input{width:100%;margin:8px 0 16px;font-size:18px}
+#mpj p,#help p{font-size:.95em;color:#aebdb6;margin:16px 0}
+#mpj button,#help button{margin-top:16px;width:100%;padding:16px;font-size:20px}
+@media(max-width:760px){.chat{position:fixed;right:6px;top:6px;bottom:6px;width:min(320px,85vw);z-index:40}}
+</style>
+<script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+</head>
+<body>
+<header><h1><span style="font-size:1.2em;transform:rotate(-15deg);display:inline-block;text-shadow:0 2px 4px #000;">🁢</span> Dominó Premium</h1>
+<div class="st"><span id="mpi" style="font-weight:bold;color:#7ed9a3">👥 Fora</span><button id="mpx" hidden>🚪 Sair</button><button id="chb">💬</button><button id="hb">? Regras</button></div></header>
+<div class="game" id="game">
+<main>
+    <div id="pot-display">💰 Pote: <span id="pot-val">0</span></div>
+    
+    <svg id="tb" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="bar"><div id="msg"></div><div id="bt"><label id="betlab" hidden style="display:flex;align-items:center;gap:6px;font-size:clamp(14px,3.5vh,18px);font-weight:bold;color:var(--gold)">Aposta <select id="bet"><option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option><option value="200">200</option></select></label><button id="buy" hidden>Comprar</button><button id="go" hidden>Iniciar</button></div></div>
+</main>
+<aside class="chat" id="chat">
+<div class="ch-top"><select id="chsel"></select><button id="chx">✕</button></div>
+<div class="ch-log" id="chlog"></div>
+<div class="ch-in"><input id="chin" maxlength="200" placeholder="Mensagem…" autocomplete="off"><button id="chsend">➤</button></div>
+</aside></div>
+<div id="mpj"><div><b style="color:var(--gold);font-size:1.4em;display:block;margin-bottom:16px;text-align:center">🁢 Dominó Premium</b>Seu nome<input id="mpn" maxlength="14" placeholder="Ex.: Ana"><br>Sala (quem usar o mesmo nome joga junto)<input id="mpr" value="mesa1" maxlength="20"><button id="mpgo">Entrar na mesa</button><p>Todos que entram na sala sentam à mesa. Se estiver sozinho, inicie contra a Máquina.</p></div></div>
+<div id="help"><div><b style="color:var(--gold);font-size:1.4em;display:block;margin-bottom:16px">Como jogar</b><p>Toque numa peça sua e depois toque no canto dourado da mesa onde quer jogar.</p><p>Quem bater (ficar sem peças) ganha. Se trancar, vence quem tiver menos pontos.</p><button id="helpx">Fechar</button></div></div>
+<script>
+const $=s=>document.querySelector(s);
+let MP_ID;
+try { MP_ID = sessionStorage.getItem('dom_id'); } catch(e) {}
+if (!MP_ID) { MP_ID = Math.random().toString(36).slice(2,8); try { sessionStorage.setItem('dom_id', MP_ID); } catch(e) {} }
+
+const MP={on:false,name:'',topic:'',c:null,peers:{},id:MP_ID,j:Date.now(),iv:0,
+ pub(o){if(MP.c&&MP.c.connected)MP.c.publish(MP.topic,JSON.stringify({...o,id:MP.id}))},
+ pubTo(to,o){if(MP.c&&MP.c.connected)MP.c.publish(MP.topic+'/u/'+to,JSON.stringify({...o,id:MP.id}))}};
+
+let G=null,H=null,HAND=[],MUST=null,sel=null,prevLen=0;
+
+const seats=()=>Object.entries(MP.peers)
+ .filter(([id,p]) => id===MP.id || (Date.now() - p.ts < 12000))
+ .map(([id,p])=>({id,u:p.u,j:p.j}))
+ .sort((a,b)=>a.j-b.j||a.id.localeCompare(b.id));
+
+const same=(a,b)=>a&&b&&a[0]===b[0]&&a[1]===b[1];
+
+let AC;function tok(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type='triangle';o.frequency.setValueAtTime(300,t);o.frequency.exponentialRampToValueAtTime(100,t+.08);g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.1);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.1)}catch(e){}}
+
+function startGame(){
+ let s=seats();
+ if(!s.some(p=>p.id===MP.id)) s.unshift({id:MP.id, u:MP.name||'Jogador', j:MP.j});
+ if(s.length<1||(G&&!G.over))return;
+ 
+ if(s.length===1)s=[...s,{id:'bot',u:'Máquina',j:0}];
+ 
+ const oldW=H?Object.fromEntries(H.ps.map(p=>[p.id,p.w])):(G?Object.fromEntries(G.ps.map(p=>[p.id,p.w])):{});
+ const oldC=H?Object.fromEntries(H.ps.map(p=>[p.id,p.chips])):(G?Object.fromEntries(G.ps.map(p=>[p.id,p.chips])):{});
+ const bet=Math.max(1,parseInt(($('#bet')||{}).value,10)||25);
+ 
+ for(const p of s){
+  const c=oldC[p.id]??1000;
+  if(c<bet){alert((p.u||'Jogador')+' não tem fichas suficientes.');return}
+ }
+ const d=[];for(let a=0;a<=6;a++)for(let b=a;b<=6;b++)d.push([a,b]);
+ for(let i=d.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[d[i],d[j]]=[d[j],d[i]]}
+ const n=s.length;
+ let per=7;
+ if(n>4){per=Math.floor(28/n);while(n*per>28)per--;if(per<2)per=2}
+ 
+ H={ps:s.map(p=>({id:p.id,u:p.u,w:oldW[p.id]||0,chips:(oldC[p.id]??1000)-bet})),hands:{},bone:[],chain:[],ci:0,turn:0,passes:0,over:null,msg:'Partida iniciada! Pote: '+ (bet*n),must:null,mustId:null,pot:bet*n,bet};
+ H.ps.forEach(p=>H.hands[p.id]=d.splice(0,per));H.bone=d;
+ 
+ let best=-1;H.ps.forEach((p,i)=>H.hands[p.id].forEach(t=>{const v=(t[0]===t[1]?100:0)+t[0]+t[1];if(v>best){best=v;H.turn=i;H.must=t;H.mustId=p.id}}));
+ hostSend();
+}
+
+const ends=()=>H.chain.length?[H.chain[0][0],H.chain[H.chain.length-1][1]]:null;
+function legal(id){const h=H.hands[id];if(!H.chain.length)return h.filter(t=>same(t,H.must));const e=ends();return h.filter(t=>t.includes(e[0])||t.includes(e[1]))}
+const pubState=()=>({t:'st',ps:H.ps.map(p=>({id:p.id,u:p.u,w:p.w,chips:p.chips,n:H.hands[p.id].length})),chain:H.chain,ci:H.ci,turn:H.ps[H.turn].id,bone:H.bone.length,msg:H.msg,over:H.over,host:MP.id,pot:H.pot||0,bet:H.bet||0});
+
+function hostSend(){
+ MP.pub(pubState());
+ let local=false;
+ H.ps.forEach(p=>{
+  if(p.id==='bot')return;
+  const payload={t:'hand',tiles:H.hands[p.id],must:(!H.chain.length&&p.id===H.mustId)?H.must:null};
+  if(p.id===MP.id){HAND=payload.tiles;MUST=payload.must;if(sel&&!HAND.some(t=>same(t,sel)))sel=null;local=true}
+  else MP.pubTo(p.id,payload);
+ });
+ if(local)draw();
+ clearTimeout(H.ap);clearTimeout(H.ai);const p=H.ps[H.turn];
+ if(!H.over&&H.chain.length&&!legal(p.id).length&&!H.bone.length)H.ap=setTimeout(()=>{if(H&&!H.over&&H.ps[H.turn]===p)passTurn()},1500);
+ if(!H.over&&p.id==='bot')H.ai=setTimeout(aiPlay,600+Math.random()*900);
+}
+
+function aiPlay(){
+ if(!H||H.over||H.ps[H.turn].id!=='bot')return;
+ const id='bot',leg=legal(id);
+ if(leg.length){
+  leg.sort((a,b)=>{const da=a[0]===a[1]?1:0,db=b[0]===b[1]?1:0;if(da!==db)return db-da;return(b[0]+b[1])-(a[0]+a[1])});
+  const t=leg[0];let side='R';
+  if(!H.chain.length)side='C';
+  else{const e=ends(),canL=t.includes(e[0]),canR=t.includes(e[1]);
+   if(canL&&!canR)side='L';else if(canR&&!canL)side='R';else side=Math.random()<0.5?'L':'R'}
+  hostAct({id:'bot',a:'play',tile:t,side});
+ }else if(H.bone.length){
+  hostAct({id:'bot',a:'draw'});
+ }
+}
+
+function passTurn(){
+ const p=H.ps[H.turn];H.passes++;H.msg=p.u+' passou a vez';
+ if(H.passes>=H.ps.length)return finish('tranca');
+ H.turn=(H.turn+1)%H.ps.length;
+ hostSend();
+}
+
+function finish(type,wid){
+ const sum=id=>H.hands[id].reduce((s,t)=>s+t[0]+t[1],0);let win=wid||null;
+ if(type==='tranca'){const m=Math.min(...H.ps.map(p=>sum(p.id))),w=H.ps.filter(p=>sum(p.id)===m);win=w.length===1?w[0].id:null}
+ const pts=win?H.ps.reduce((s,p)=>s+(p.id===win?0:sum(p.id)),0):0;
+ const pot=H.pot||0;
+ if(win){
+  const wp=H.ps.find(p=>p.id===win);
+  wp.w++;
+  wp.chips=(wp.chips||0)+pot;
+  H.msg=(wp.u||'')+' ganhou o pote de '+pot+' fichas!';
+ }else{
+  const back=H.bet||0;
+  H.ps.forEach(p=>{p.chips=(p.chips||0)+back});
+  H.msg='Empate — pote devolvido';
+ }
+ H.pot=0;
+ H.over={type,win,pts,pot,hands:H.hands};hostSend();
+}
+
+function hostAct(d){
+ if(!H||H.over)return;const p=H.ps[H.turn];if(d.id!==p.id)return;const hand=H.hands[p.id];
+ if(d.a==='play'){
+  const i=hand.findIndex(t=>same(t,d.tile));if(i<0)return;const t=hand[i];
+  if(!H.chain.length){if(!same(t,H.must)||d.side!=='C')return;H.chain=[[t[0],t[1]]];H.ci=0}
+  else{const e=ends();
+   if(d.side==='L'){if(!t.includes(e[0]))return;H.chain.unshift(t[1]===e[0]?[t[0],t[1]]:[t[1],t[0]]);H.ci++}
+   else if(d.side==='R'){if(!t.includes(e[1]))return;H.chain.push(t[0]===e[1]?[t[0],t[1]]:[t[1],t[0]])}
+   else return}
+  hand.splice(i,1);H.passes=0;H.msg=p.u+' jogou';
+  if(!hand.length){H.msg=p.u+' bateu!';return finish('bate',p.id)}
+  H.turn=(H.turn+1)%H.ps.length;hostSend();
+ }else if(d.a==='draw'){if(legal(p.id).length||!H.bone.length)return;hand.push(H.bone.pop());H.msg=p.u+' comprou do monte';hostSend()}
+}
+
+const PIP={1:[[0,0]],2:[[-1,-1],[1,1]],3:[[-1,-1],[0,0],[1,1]],4:[[-1,-1],[1,-1],[-1,1],[1,1]],5:[[-1,-1],[1,-1],[0,0],[-1,1],[1,1]],6:[[-1,-1],[-1,0],[-1,1],[1,-1],[1,0],[1,1]]};
+const SVG_DEFS = `
+<defs>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="2" dy="5" stdDeviation="3" flood-color="#000" flood-opacity="0.5"/>
+  </filter>
+  <filter id="shadow-strong" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="4" dy="8" stdDeviation="5" flood-color="#000" flood-opacity="0.6"/>
+  </filter>
+  <linearGradient id="ivory-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="30%" stop-color="#fdfbf7"/>
+    <stop offset="70%" stop-color="#f0e6d2"/>
+    <stop offset="100%" stop-color="#d9c5a3"/>
+  </linearGradient>
+  <linearGradient id="back-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#1c3852"/>
+    <stop offset="50%" stop-color="#0f2235"/>
+    <stop offset="100%" stop-color="#07111c"/>
+  </linearGradient>
+  <radialGradient id="pip-grad" cx="40%" cy="40%" r="60%">
+    <stop offset="0%" stop-color="#2a2a2a"/>
+    <stop offset="70%" stop-color="#0a0a0a"/>
+    <stop offset="100%" stop-color="#000000"/>
+  </radialGradient>
+</defs>
+`;
+
+function tile(x,y,ang,a,b,u,ex){
+ const s=u*.26, r=u*.09;
+ const pp=(v,cx)=>(PIP[v]||[]).map(([i,j])=>{
+   const px = cx+i*s, py = j*s;
+   return `<circle cx="${px}" cy="${py}" r="${r}" fill="url(#pip-grad)"/>
+           <path d="M ${px-r*.6} ${py+r*.6} A ${r*.6} ${r*.6} 0 0 0 ${px+r*.6} ${py+r*.6}" stroke="#ffffff" stroke-opacity="0.4" stroke-width="${r*.3}" fill="none"/>`;
+ }).join('');
+ 
+ return `<g transform="translate(${x},${y}) rotate(${ang})" ${ex||''} filter="url(#shadow)">
+   <rect x="${-u}" y="${-u/2}" width="${2*u}" height="${u}" rx="${u*.16}" fill="url(#ivory-grad)" stroke="#a89875" stroke-width="2"/>
+   <rect x="${-u+3}" y="${-u/2+3}" width="${2*u-6}" height="${u-6}" rx="${u*.12}" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="2"/>
+   <line x1="0" y1="${-u*.32}" x2="0" y2="${u*.32}" stroke="#8a7a52" stroke-width="3" stroke-linecap="round"/>
+   <g>${pp(a,-u/2)}${pp(b,u/2)}</g>
+ </g>`;
+}
+
+const back=(x,y,ang,u)=>`<g transform="translate(${x},${y}) rotate(${ang})" filter="url(#shadow)">
+   <rect x="${-u}" y="${-u/2}" width="${2*u}" height="${u}" rx="${u*.16}" fill="url(#back-grad)" stroke="#0a1520" stroke-width="2"/>
+   <rect x="${-u+3}" y="${-u/2+3}" width="${2*u-6}" height="${u-6}" rx="${u*.12}" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2"/>
+   <line x1="0" y1="${-u*.3}" x2="0" y2="${u*.3}" stroke="#0a1520" stroke-width="2"/>
+   <circle cx="0" cy="0" r="${u*.18}" fill="none" stroke="#d4af37" stroke-opacity="0.8" stroke-width="2"/>
+   <circle cx="0" cy="0" r="${u*.06}" fill="#d4af37" fill-opacity="0.8"/>
+ </g>`;
+
+function layout(chain,ci,u,virt){
+ const B={x:380,y:140},out=[],dbl=t=>t[0]===t[1],c=chain[ci],ev=dbl(c)?u:2*u;
+ out.push({t:c,x:0,y:0,ang:dbl(c)?90:0,i:c[0],o:c[1]});
+ const arm=(list,d0,right)=>{
+  let d=d0,P={x:d.x*ev/2,y:d.y*ev/2};
+  const place=t=>{const e=dbl(t)?u:2*u;
+   if(Math.abs(P.x+d.x*e)>B.x||Math.abs(P.y+d.y*e)>B.y){const nd={x:-d.y,y:d.x};P={x:P.x+d.x*u/2+nd.x*u/2,y:P.y+d.y*u/2+nd.y*u/2};d=nd}
+   const r={x:P.x+d.x*e/2,y:P.y+d.y*e/2,ang:Math.atan2(d.y,d.x)*180/Math.PI+(dbl(t)?90:0)};P={x:P.x+d.x*e,y:P.y+d.y*e};return r};
+  list.forEach(t=>{const r=place(t);out.push({t,x:r.x,y:r.y,ang:r.ang,i:right?t[0]:t[1],o:right?t[1]:t[0]})});
+  return place};
+ const pr=arm(chain.slice(ci+1),{x:1,y:0},true),pl=arm(chain.slice(0,ci).reverse(),{x:-1,y:0},false);
+ return{out,pr,pl};
+}
+
+const COL=['#c0392b','#2980b9','#27ae60','#8e44ad','#e67e22','#e91e63','#1abc9c','#9b59b6','#f1c40f','#3498db'];
+
+function seatPos(rel,n){
+ const start=Math.PI/2,step=2*Math.PI/Math.max(1,n),ang=start+rel*step;
+ const a=((ang%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
+ const rx=360,ry=165,x=400+rx*Math.cos(ang),y=250+ry*Math.sin(ang);
+ let side='b';
+ if(a<Math.PI*0.25||a>=Math.PI*1.75)side='r';
+ else if(a<Math.PI*0.75)side='b';
+ else if(a<Math.PI*1.25)side='l';
+ else side='t';
+ return{x,y,side,ang};
+}
+
+function draw(){
+ const lobby=!G,ps=G?G.ps:seats().map(p=>({id:p.id,u:p.u,w:0,n:0})),n=ps.length,mi=Math.max(0,ps.findIndex(p=>p.id===MP.id)),seated=ps.some(p=>p.id===MP.id);
+
+ const potEl = document.getElementById('pot-display');
+ if(G && !G.over && G.pot > 0) {
+     potEl.style.display = 'block';
+     document.getElementById('pot-val').textContent = G.pot;
+ } else {
+     potEl.style.display = 'none';
+ }
+ 
+ let h = SVG_DEFS;
+
+ const avR=n>6?24:n>4?30:38; 
+ ps.forEach((p,i)=>{
+  const rel=(i-mi+n)%n,sp=seatPos(rel,n),act=G&&!G.over&&G.turn===p.id,hv=G&&G.over&&G.over.hands&&G.over.hands[p.id];
+  const Bx=sp.x,By=sp.y,side=sp.side;
+  const chipTxt=(p.chips!=null?' 💰'+p.chips:'')+(p.w?' 🏆'+p.w:'');
+  
+  const isBot = p.id === 'bot';
+  const letter = isBot ? '🤖' : p.u.slice(0,1).toUpperCase();
+  
+  h+=`<g>
+    <circle cx="${Bx}" cy="${By+3}" r="${avR}" fill="#000" opacity="0.6"/>
+    <circle cx="${Bx}" cy="${By}" r="${avR}" fill="${COL[i%COL.length]}" stroke="${act?'#ffd84d':'#222'}" stroke-width="${act?6:3}" ${act?'class="pulse"':''}/>
+    <text x="${Bx}" y="${By+10}" text-anchor="middle" font-size="${isBot?avR:avR*0.8}" font-weight="bold" fill="#fff" filter="drop-shadow(0 2px 2px #000)">${letter}</text>
+    <rect x="${Bx-75}" y="${By+avR+8}" width="150" height="32" rx="16" fill="rgba(0,0,0,0.75)" stroke="#444" stroke-width="1"/>
+    <text x="${Bx}" y="${By+avR+30}" text-anchor="middle" font-size="18" fill="#f4ecd8" font-weight="bold">${p.u.slice(0,9)}${chipTxt}</text>
+  </g>`;
+  
+  if(side!=='b'&&G&&p.n>0){
+   const k=p.n,tsz=n>5?16:22,spx=Math.min(tsz*2,240/Math.max(1,k)),horiz=side==='t';
+   for(let q=0;q<k;q++){const o=(q-(k-1)/2)*spx;
+    let x,y,ang;
+    if(horiz){x=Bx+o;y=side==='t'?By+50:By-50;ang=0}
+    else if(side==='r'){x=Bx-50;y=By+o;ang=90}
+    else{x=Bx+50;y=By+o;ang=90}
+    h+=hv?tile(x,y,ang,hv[q][0],hv[q][1],tsz):back(x,y,ang,tsz)}
+  }
+  if(side==='b'&&hv&&p.id!==MP.id)hv.forEach((t,q)=>{h+=tile(Bx+(q-(hv.length-1)/2)*36,By-50,0,t[0],t[1],22)});
+ });
+
+ let tg='';
+ if(G&&G.chain.length){
+  let u = 50;
+  if(G.chain.length > 6) u = 44;
+  if(G.chain.length > 10) u = 38;
+  if(G.chain.length > 15) u = 32;
+  if(G.chain.length > 22) u = 26;
+  if(G.chain.length > 30) u = 22;
+  
+  const L=layout(G.chain,G.ci,u);
+  h+=`<g transform="translate(400,250)">`+L.out.map(o=>tile(o.x,o.y,o.ang,o.i,o.o,u)).join('');
+  
+  if(sel&&G.turn===MP.id&&!G.over){
+   const e0=G.chain[0][0],e1=G.chain[G.chain.length-1][1],dbl=sel[0]===sel[1];
+   const gh=(pl,side)=>{const r=pl(dbl?[1,1]:[1,2]);return `<g transform="translate(${r.x},${r.y}) rotate(${r.ang})" data-e="${side}" style="cursor:pointer;filter:url(#shadow-strong)"><rect x="${-u}" y="${-u/2}" width="${2*u}" height="${u}" rx="${u*.16}" fill="rgba(212,175,55,0.5)" stroke="#ffd84d" stroke-width="6" stroke-dasharray="12 10" class="pulse"/></g>`};
+   if(sel.includes(e0))tg+=gh(L.pl,'L');if(sel.includes(e1))tg+=gh(L.pr,'R');
+  }
+  h+=tg+`</g>`;
+ }else if(G&&!G.over&&G.turn===MP.id&&MUST&&sel&&same(sel,MUST)){
+   h+=`<g transform="translate(400,250)" data-e="C" style="cursor:pointer;filter:url(#shadow-strong)"><rect x="-40" y="-70" width="80" height="140" rx="12" fill="rgba(212,175,55,0.5)" stroke="#ffd84d" stroke-width="6" stroke-dasharray="12 10" class="pulse"/></g>`;
+ }
+
+ if(lobby)h+=`<text x="400" y="220" text-anchor="middle" font-size="42" font-weight="bold" fill="#f4ecd8" opacity=".9" filter="drop-shadow(0 2px 4px #000)">Dominó Premium</text><text x="400" y="270" text-anchor="middle" font-size="28" fill="#d4af37" opacity=".9">${MP.on?'Aguardando jogadores… ('+n+')':'Entre numa sala'}</text>`;
+ 
+ if(G&&G.over){const o=G.over,nm=id=>(G.ps.find(p=>p.id===id)||{}).u;
+  const potTxt=o.win&&o.pot?('  +'+o.pot+' fichas'):(o.pot?' (pote devolvido)':'');
+  h+=`<rect x="140" y="186" width="520" height="124" rx="16" fill="rgba(0,0,0,.9)" stroke="#d4af37" stroke-width="3" filter="url(#shadow-strong)"/>
+      <text x="400" y="240" text-anchor="middle" font-size="36" font-weight="bold" fill="#ffd84d" filter="drop-shadow(0 2px 4px #000)">${o.win?(o.type==='bate'?'🏆 '+nm(o.win)+' bateu!':'🔒 Trancou: '+nm(o.win)+' vence'):'🔒 Trancou: empate'}</text>
+      <text x="400" y="280" text-anchor="middle" font-size="24" fill="#f4ecd8">${o.win?'+'+o.pts+' pontos'+potTxt:('ninguém pontua'+potTxt)}</text>`}
+ 
+ if(seated&&HAND.length){
+  const k=HAND.length;
+  const tileHeight = 62;
+  const sp = Math.min(75, 700/k);
+  const e=G&&G.chain.length?[G.chain[0][0],G.chain[G.chain.length-1][1]]:null,mine=G&&!G.over&&G.turn===MP.id;
+  
+  HAND.forEach((t,q)=>{
+   const fit=e?(t.includes(e[0])||t.includes(e[1])):(MUST&&same(t,MUST)),on=sel&&same(sel,t);
+   const xPos = 400+(q-(k-1)/2)*sp;
+   
+   h+=`<g opacity="${mine&&!fit?.4:1}">`+
+      tile(xPos, on?500:530, 90, t[0], t[1], tileHeight, `data-h="${q}" style="cursor:pointer"`)+
+      (on?`<rect x="${xPos-34}" y="${500-72}" width="68" height="144" rx="12" fill="none" stroke="#ffd84d" stroke-width="6" filter="drop-shadow(0 0 15px #ffd84d)"/>`:'')+
+      `</g>`});
+ }
+ $('#tb').innerHTML=h;bar();
+}
+
+function bar(){
+ const m=$('#msg'),go=$('#go'),buy=$('#buy'),betlab=$('#betlab');let t='',myTurn=G&&!G.over&&G.turn===MP.id;
+ const seated=G?G.ps.some(p=>p.id===MP.id):true;
+ const nHum=seats().length;
+ const canStart=MP.on&&(G?G.over:true);
+ go.hidden=!canStart;go.textContent=G?'Nova partida':'Iniciar';
+ if(betlab)betlab.hidden=!canStart||!!(G&&!G.over);
+ const noLegal=myTurn&&G.chain.length&&!HAND.some(x=>x.includes(G.chain[0][0])||x.includes(G.chain[G.chain.length-1][1]));
+ buy.hidden=!(noLegal&&G.bone>0);buy.textContent='Comprar ('+(G?G.bone:0)+')';
+ const me=G?G.ps.find(p=>p.id===MP.id):null;
+ const myChips=me&&me.chips!=null?me.chips:null;
+ 
+ if(!MP.on)t='Entre numa sala para jogar.';
+ else if(!G)t=nHum<=1?'Você está sozinho. Escolha a aposta e inicie contra a Máquina.':'Mesa pronta! ('+nHum+' jogadores) Escolha a aposta e inicie.';
+ else if(G.over)t='Partida encerrada.'+(myChips!=null?' Suas fichas: 💰'+myChips:'');
+ else if(myTurn)t=!G.chain.length?'Você começa! Toque na peça '+(MUST?MUST[0]+'|'+MUST[1]:'')+' e depois no centro da mesa.':noLegal?(G.bone>0?'Nenhuma peça encaixa: compre do monte.':'Nenhuma peça encaixa: você passa a vez.'):sel?'Agora toque no canto dourado onde quer jogar.':'Sua vez! Toque numa peça.';
+ else t=(G.ps.find(p=>p.id===G.turn)||{}).u+' está pensando… '+(G.msg?'('+G.msg+')':'');
+ if(myChips!=null&&G&&!G.over)t+=' | Você: 💰'+myChips;
+ m.textContent=t;
+}
+
+$('#tb').onclick=e=>{
+ const el=e.target.closest('[data-h],[data-e]');if(!el||!G||G.over||G.turn!==MP.id)return;
+ if(el.dataset.h!==undefined){const t=HAND[+el.dataset.h];sel=same(sel,t)?null:t;draw()}
+ else if(sel){
+     if(H) { hostAct({id:MP.id, a:'play', tile:sel, side:el.dataset.e}); }
+     else { MP.pub({t:'act',a:'play',tile:sel,side:el.dataset.e}); }
+     sel=null;draw();
+ }
+};
+$('#buy').onclick=()=>{
+    if(H) hostAct({id:MP.id, a:'draw'});
+    else MP.pub({t:'act',a:'draw'});
+};
+$('#go').onclick=startGame;
+
+function drop(id){
+ const p=MP.peers[id];delete MP.peers[id];if(!p)return;chAdd('all','','⚪ '+p.u+' saiu','sys',1);
+ if(H&&H.ps.some(q=>q.id===id)){H=null;MP.pub({t:'abort',u:p.u})}
+ else if(G&&id===G.host){G=null;HAND=[];MUST=null;sel=null;prevLen=0;chAdd('all','','⚠️ O anfitrião saiu: partida encerrada','sys',1)}
+ chDraw();draw();
+}
+function upMp(){
+ const now=Date.now();for(const k in MP.peers)if(k!==MP.id&&now-MP.peers[k].ts>25000)drop(k);
+ $('#mpi').textContent=MP.on?'👥 '+seats().length+' online':'👥 Fora';
+ $('#mpi').title=Object.values(MP.peers).map(p=>p.u).join(', ');$('#mpx').hidden=!MP.on;draw();
+}
+function mpMsg(d){
+ switch(d.t){
+ case'hi':{const nw=!MP.peers[d.id];MP.peers[d.id]={u:d.u,j:d.j,ts:Date.now()};if(nw){if(d.id!==MP.id){MP.pub({t:'hi',u:MP.name,j:MP.j});chAdd('all','','🟢 '+d.u+' entrou','sys',1)}chDraw();upMp()}break}
+ case'bye':drop(d.id);break;
+ case'st':G=d;if(G.chain.length>prevLen)tok();prevLen=G.chain.length;draw();break;
+ case'hand':HAND=d.tiles;MUST=d.must;if(sel&&!HAND.some(t=>same(t,sel)))sel=null;draw();break;
+ case'act':if(H&&d.id!==MP.id)hostAct(d);break;
+ case'need':if(H&&d.id!==MP.id)MP.pub(pubState());break;
+ case'abort':G=null;H=null;HAND=[];MUST=null;sel=null;prevLen=0;chAdd('all','','⚠️ '+d.u+' saiu: partida encerrada','sys',1);draw();break;
+ case'chat':chAdd('all',d.id===MP.id?'Você':d.u,d.m,d.id===MP.id?'me':'');break;
+ case'dm':chAdd(d.id,d.u,d.m,'dm');break;
+ }
+}
+function mpJoin(name,room){
+ if(typeof mqtt==='undefined'){alert('Não foi possível carregar o multiplayer. Verifique a internet.');return}
+ MP.name=name;MP.topic='domino/v1/'+room;try{localStorage.setItem('dom_nome',name)}catch(e){}
+ const c=MP.c=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'dom_'+MP.id,reconnectPeriod:3000,connectTimeout:8000});
+ c.on('connect',()=>{MP.on=true;c.subscribe(MP.topic);c.subscribe(MP.topic+'/u/'+MP.id);MP.pub({t:'hi',u:name,j:MP.j});MP.pub({t:'need'});upMp()});
+ c.on('close',()=>{if(MP.c!==c)return;MP.on=false;upMp()});
+ c.on('message',(t,m)=>{if(MP.c!==c)return;let d;try{d=JSON.parse(m.toString())}catch(e){return}mpMsg(d)});
+ MP.iv=setInterval(()=>{MP.pub({t:'hi',u:name,j:MP.j});upMp()},8000);
+}
+function sairSala(){
+ MP.pub({t:'bye'});clearInterval(MP.iv);const c=MP.c;MP.on=false;MP.c=null;MP.peers={};G=null;H=null;HAND=[];MUST=null;sel=null;prevLen=0;
+ if(c)c.end();upMp();chDraw();
+}
+
+window.addEventListener('beforeunload', () => {
+    if(MP.on) MP.pub({t:'bye'});
+});
+
+$('#mpx').onclick=sairSala;
+$('#mpi').onclick=()=>{if(!MP.on)$('#mpj').classList.add('show')};
+$('#mpgo').onclick=()=>{const n=($('#mpn').value.trim().replace(/[<>&]/g,'')).slice(0,14)||'Jogador'+(Math.random()*900+100|0),r=($('#mpr').value.trim()||'mesa1').replace(/[^\w-]/g,'').slice(0,20)||'mesa1';$('#mpj').classList.remove('show');mpJoin(n,r)};
+$('#hb').onclick=()=>$('#help').classList.add('show');$('#helpx').onclick=()=>$('#help').classList.remove('show');
+try{$('#mpn').value=localStorage.getItem('dom_nome')||''}catch(e){}
+
+const CH={all:[]},UN={};let chCur='all',chOpen=false,chLast=0;
+function chAdd(k,who,txt,cls,quiet){
+ (CH[k]=CH[k]||[]).push({w:who,t:txt,c:cls||''});if(CH[k].length>150)CH[k].shift();
+ if(!quiet&&(k!==chCur||!chOpen)){UN[k]=(UN[k]||0)+1;tok()}
+ chDraw();
+}
+function chDraw(){
+ if(chOpen)UN[chCur]=0;
+ const sel=$('#chsel');sel.innerHTML='';
+ const add=(v,t)=>{const o=document.createElement('option');o.value=v;o.textContent=t+(UN[v]?' ('+UN[v]+')':'');sel.append(o)};
+ add('all','👥 Todos');for(const id in MP.peers)if(id!==MP.id)add(id,'🔒 '+MP.peers[id].u);
+ if(![...sel.options].some(o=>o.value===chCur))chCur='all';sel.value=chCur;
+ const log=$('#chlog');log.innerHTML='';
+ if(!MP.on)log.textContent='Entre numa sala para conversar.';
+ else(CH[chCur]||[]).forEach(m=>{const d=document.createElement('div'),b=document.createElement('b');d.className='cm '+m.c;b.textContent=m.w?m.w+': ':'';d.append(b,document.createTextNode(m.t));log.append(d)});
+ log.scrollTop=log.scrollHeight;
+ const n=Object.values(UN).reduce((s,x)=>s+x,0);$('#chb').textContent='💬'+(n?' '+n:'');
+}
+function chSend(){
+ const i=$('#chin'),t=i.value.trim().slice(0,200);if(!t||!MP.on||Date.now()-chLast<700)return;chLast=Date.now();i.value='';
+ if(chCur==='all')MP.pub({t:'chat',u:MP.name,m:t});else{MP.pubTo(chCur,{t:'dm',u:MP.name,m:t});chAdd(chCur,'Você',t,'me')}
+}
+$('#chb').onclick=()=>{chOpen=!chOpen;$('#game').classList.toggle('chopen',chOpen);chDraw()};
+$('#chx').onclick=()=>{chOpen=false;$('#game').classList.remove('chopen');chDraw()};
+$('#chsel').onchange=e=>{chCur=e.target.value;chDraw()};
+$('#chsend').onclick=chSend;$('#chin').onkeydown=e=>{if(e.key==='Enter')chSend()};
+chDraw();draw();
+if(typeof mqtt!=='undefined')$('#mpj').classList.add('show');
+</script>
+</body>
+</html>
