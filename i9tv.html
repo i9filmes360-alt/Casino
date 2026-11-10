@@ -233,11 +233,11 @@
   <div id="playerModal" class="fixed inset-0 z-50 hidden bg-black/95 flex items-center justify-center p-2 sm:p-4" onclick="handleModalBgClick(event)">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[98vh]" onclick="event.stopPropagation()">
       
-      <!-- Player Header -->
-      <div class="p-3 sm:p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+      <!-- Player Header com Botões de Troca de Canal Acima -->
+      <div class="p-3 sm:p-4 border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900">
         <div class="flex items-center gap-3">
           <button onclick="closeModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow transition">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar aos Canais
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
           </button>
           <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
           <div class="flex items-center gap-2 sm:gap-3">
@@ -249,17 +249,30 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button id="modalFavBtn" onclick="toggleCurrentModalFavorite()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-500 transition">
-            <i data-lucide="heart" class="w-5 h-5"></i>
-          </button>
-          <button onclick="closeModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
+        <!-- Botões Canal Anterior / Próximo no Topo -->
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+            <button onclick="switchChannel(-1)" title="Canal Anterior" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs flex items-center gap-1 transition">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i> <span class="hidden md:inline text-[11px]">Ant</span>
+            </button>
+            <span class="text-[11px] text-slate-400 px-1">Canais</span>
+            <button onclick="switchChannel(1)" title="Próximo Canal" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs flex items-center gap-1 transition">
+              <span class="hidden md:inline text-[11px]">Próx</span> <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="modalFavBtn" onclick="toggleCurrentModalFavorite()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-500 transition">
+              <i data-lucide="heart" class="w-5 h-5"></i>
+            </button>
+            <button onclick="closeModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Player Frame -->
+      <!-- Player Frame com autoplay ativo -->
       <div class="bg-black aspect-video-container relative">
         <iframe 
           id="videoIframe" 
@@ -272,17 +285,19 @@
         ></iframe>
       </div>
 
-      <!-- Controls -->
-      <div class="p-3 sm:p-4 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div class="flex items-center gap-2 flex-wrap" id="serverContainer">
+      <!-- Controls & Servers -->
+      <div class="p-3 sm:p-4 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <!-- Servidores -->
+        <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start" id="serverContainer">
           <span class="text-xs font-medium text-slate-400 flex items-center gap-1">
             <i data-lucide="server" class="w-3.5 h-3.5"></i> Servidor:
           </span>
         </div>
 
+        <!-- Copy Embed Code Button -->
         <button 
           onclick="copyEmbedCode()" 
-          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 flex items-center gap-2 transition ml-auto sm:ml-0"
+          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 flex items-center gap-2 transition ml-auto"
         >
           <i data-lucide="code" class="w-3.5 h-3.5 text-indigo-400"></i>
           <span id="copyEmbedText">Copiar Embed</span>
@@ -326,16 +341,8 @@
           description: "Sinal aberto HD de São Paulo",
           logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Rede_Globo_logo.svg/300px-Rede_Globo_logo.svg.png",
           category: "Entretenimento",
-          embeds: [
-            { provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }
-          ],
-          epg: {
-            current: {
-              title: "Jornal Nacional",
-              description: "Notícias do Brasil e do Mundo.",
-              formatted_time: "20:30 - 21:30"
-            }
-          }
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
+          epg: { current: { title: "Jornal Nacional", description: "Notícias do Brasil e do Mundo.", formatted_time: "20:30 - 21:30" } }
         },
         {
           id: "sportv",
@@ -417,12 +424,12 @@
 
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeModal();
+        if (e.key === 'ArrowRight') switchChannel(1);
+        if (e.key === 'ArrowLeft') switchChannel(-1);
       });
 
-      // Inicia a sincronização automática em background imediatamente
       syncWithRemoteApi(false);
 
-      // Loop de reconexão automática caso perca conexão (tenta a cada 15 segundos se estiver offline)
       setInterval(() => {
         if (!state.isApiConnected) {
           syncWithRemoteApi(false);
@@ -725,7 +732,7 @@
 
       const embeds = item.embeds || [];
       const serverContainer = document.getElementById('serverContainer');
-      serverContainer.innerHTML = `<span class="text-xs font-medium text-slate-400">Servidores:</span>`;
+      serverContainer.innerHTML = `<span class="text-xs font-medium text-slate-400 flex items-center gap-1"><i data-lucide="server" class="w-3.5 h-3.5"></i> Servidor:</span>`;
 
       if (embeds.length > 0) {
         embeds.forEach((emb, idx) => {
@@ -739,14 +746,45 @@
       }
 
       document.getElementById('playerModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function switchChannel(direction) {
+      if (!state.currentPlayingItem) return;
+      
+      const cat = state.currentPlayingItem.category;
+      const categoryChannels = state.channels.filter(c => c.category === cat);
+      
+      if (categoryChannels.length <= 1) return;
+
+      const currentIndex = categoryChannels.findIndex(c => c.id === state.currentPlayingItem.id);
+      if (currentIndex === -1) return;
+
+      let newIndex = currentIndex + direction;
+      if (newIndex < 0) newIndex = categoryChannels.length - 1;
+      if (newIndex >= categoryChannels.length) newIndex = 0;
+
+      const nextChannel = categoryChannels[newIndex];
+      openPlayerModal('channel', nextChannel.id);
     }
 
     function selectServer(url, btnElement) {
-      state.activeEmbedUrl = url;
-      document.getElementById('videoIframe').src = url;
+      // Garante que a URL forome o autoplay habilitado se suportado pelo provedor
+      let autoUrl = url;
+      if (autoUrl) {
+        if (!autoUrl.includes('autoplay=1')) {
+          autoUrl += (autoUrl.includes('?') ? '&' : '?') + 'autoplay=1';
+        }
+      }
+
+      state.activeEmbedUrl = autoUrl;
+      document.getElementById('videoIframe').src = autoUrl;
+
       const parent = document.getElementById('serverContainer');
       Array.from(parent.querySelectorAll('button')).forEach(b => {
-        b.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-slate-800 text-slate-300';
+        if (!b.classList.contains('text-slate-400')) {
+          b.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-slate-800 text-slate-300';
+        }
       });
       if (btnElement) btnElement.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-indigo-600 text-white';
     }
