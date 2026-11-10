@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>i9tv - Streaming & EPG</title>
+  <title>Rei dos Canais - Streaming & EPG</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -49,14 +49,12 @@
       background: #475569;
     }
     
-    /* FIX DEFINITIVO DE TRAVAMENTO ROBÓTICO FORA DA TELA CHEIA */
     .aspect-video-container {
       position: relative;
       padding-bottom: 56.25%; /* Ratio 16:9 */
       height: 0;
       overflow: hidden;
       background-color: #000;
-      /* Isolamento absoluto de renderização da GPU */
       isolation: isolate;
       contain: strict;
       transform: translate3d(0, 0, 0);
@@ -71,7 +69,6 @@
       width: 100%;
       height: 100%;
       border: 0;
-      /* Previne recálculo de layout */
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
@@ -91,7 +88,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-bold text-xl tracking-tight text-white">i9tv</span>
+              <span class="font-bold text-xl tracking-tight text-white">Rei dos Canais</span>
               <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-semibold">Web</span>
             </div>
             <p class="text-xs text-slate-400 flex items-center gap-1">
@@ -121,17 +118,17 @@
         <div class="flex items-center gap-3">
           <button 
             id="dataSourceToggleBtn"
-            onclick="toggleDataSource()"
+            onclick="syncWithRemoteApi(true)"
             class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-medium text-slate-300 flex items-center gap-2 transition"
           >
             <i data-lucide="server" class="w-3.5 h-3.5 text-indigo-400"></i>
-            <span id="dataSourceLabel">Modo Seguro</span>
+            <span id="dataSourceLabel">Status API</span>
           </button>
 
           <!-- Health Status Badge -->
           <div id="healthBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium text-slate-400">
-            <span class="w-2 h-2 rounded-full bg-emerald-500" id="healthDot"></span>
-            <span id="healthStatusText">Pronto</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="healthDot"></span>
+            <span id="healthStatusText">Conectando...</span>
           </div>
         </div>
 
@@ -189,7 +186,7 @@
         </div>
 
         <button 
-          onclick="syncWithRemoteApi()" 
+          onclick="syncWithRemoteApi(true)" 
           class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5 text-xs"
         >
           <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="refreshIcon"></i>
@@ -204,9 +201,9 @@
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2">
         <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
-        <span id="bannerText">API remota inacessível. Exibindo catálogo local.</span>
+        <span id="bannerText">Tentando restabelecer conexão automática com a API...</span>
       </div>
-      <button onclick="syncWithRemoteApi()" class="underline font-semibold hover:text-white">Tentar Novamente</button>
+      <button onclick="syncWithRemoteApi(true)" class="underline font-semibold hover:text-white">Forçar Agora</button>
     </div>
   </div>
 
@@ -232,7 +229,7 @@
 
   </main>
 
-  <!-- Player Modal Sem Filtros Pesados de GPU -->
+  <!-- Player Modal -->
   <div id="playerModal" class="fixed inset-0 z-50 hidden bg-black/95 flex items-center justify-center p-2 sm:p-4" onclick="handleModalBgClick(event)">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[98vh]" onclick="event.stopPropagation()">
       
@@ -262,7 +259,7 @@
         </div>
       </div>
 
-      <!-- Player Frame Isolado sem Arredondamento para GPU -->
+      <!-- Player Frame -->
       <div class="bg-black aspect-video-container relative">
         <iframe 
           id="videoIframe" 
@@ -307,7 +304,7 @@
         <div class="bg-indigo-600/20 p-1.5 rounded text-indigo-400">
           <i data-lucide="tv" class="w-4 h-4"></i>
         </div>
-        <p>© 2026 i9tv Web Client.</p>
+        <p>© 2026 Rei dos Canais Web Client.</p>
       </div>
       <div class="flex items-center gap-4 text-slate-500">
         <a href="https://api.reidoscanais.my" target="_blank" class="hover:text-slate-300 flex items-center gap-1">
@@ -408,7 +405,9 @@
       selectedCategory: 'all',
       activeEmbedUrl: '',
       currentPlayingItem: null,
-      searchQuery: ''
+      searchQuery: '',
+      retryCount: 0,
+      isApiConnected: false
     };
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -420,7 +419,15 @@
         if (e.key === 'Escape') closeModal();
       });
 
-      setTimeout(syncWithRemoteApi, 1000);
+      // Inicia a sincronização automática em background imediatamente
+      syncWithRemoteApi(false);
+
+      // Loop de reconexão automática caso perca conexão (tenta a cada 15 segundos se estiver offline)
+      setInterval(() => {
+        if (!state.isApiConnected) {
+          syncWithRemoteApi(false);
+        }
+      }, 15000);
     });
 
     function goHome() {
@@ -430,37 +437,59 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    async function syncWithRemoteApi() {
+    async function syncWithRemoteApi(isManual = false) {
       const icon = document.getElementById('refreshIcon');
       if (icon) icon.classList.add('animate-spin');
 
+      if (isManual) {
+        document.getElementById('healthStatusText').innerText = "Reconectando...";
+      }
+
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
       try {
-        const res = await fetch(`${API_BASE}/channels`, { signal: controller.signal });
+        const [channelsRes, sportsRes] = await Promise.all([
+          fetch(`${API_BASE}/channels`, { signal: controller.signal }),
+          fetch(`${API_BASE}/sports`, { signal: controller.signal })
+        ]);
+        
         clearTimeout(timeoutId);
         
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data && json.data.length > 0) {
-            state.channels = json.data;
-            extractCategories();
-            renderView();
-            document.getElementById('healthStatusText').innerText = "API Conectada";
-            document.getElementById('connectionBanner').classList.add('hidden');
+        if (channelsRes.ok) {
+          const channelsJson = await channelsRes.json();
+          if (channelsJson.data && channelsJson.data.length > 0) {
+            state.channels = channelsJson.data;
           }
         }
+
+        if (sportsRes.ok) {
+          const sportsJson = await sportsRes.json();
+          if (sportsJson.data && sportsJson.data.length > 0) {
+            state.sports = sportsJson.data;
+          }
+        }
+
+        state.isApiConnected = true;
+        state.retryCount = 0;
+        extractCategories();
+        renderView();
+        
+        document.getElementById('healthStatusText').innerText = "API Online";
+        document.getElementById('healthDot').className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        document.getElementById('connectionBanner').classList.add('hidden');
+
       } catch (e) {
-        document.getElementById('healthStatusText').innerText = "Modo Offline/Local";
+        state.isApiConnected = false;
+        state.retryCount++;
+        
+        document.getElementById('healthStatusText').innerText = "Modo Local (Reconectando...)";
+        document.getElementById('healthDot').className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
         document.getElementById('connectionBanner').classList.remove('hidden');
+        document.getElementById('bannerText').innerText = `API instável. Tentativa automática nº ${state.retryCount} em segundo plano...`;
       } finally {
         if (icon) icon.classList.remove('animate-spin');
       }
-    }
-
-    function toggleDataSource() {
-      syncWithRemoteApi();
     }
 
     function extractCategories() {
