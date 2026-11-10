@@ -1,1378 +1,1221 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rei dos Canais - Streaming & EPG</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f6ff',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            accent: '#e11d48'
-                        },
-                        dark: {
-                            bg: '#0f172a',
-                            card: '#1e293b',
-                            cardHover: '#334155',
-                            border: '#334155'
-                        }
-                    }
-                }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rei dos Canais - Streaming & EPG</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+              dark: '#0f172a',
+              card: '#1e293b'
             }
+          }
         }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0b0f19;
-            color: #f8fafc;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .live-pulse {
-            box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7);
-            animation: pulse-red 2s infinite;
-        }
-        @keyframes pulse-red {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(225, 29, 72, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
-        }
-    </style>
+      }
+    }
+  </script>
+  
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    
+    .aspect-video-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      height: 0;
+      overflow: hidden;
+    }
+    .aspect-video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-brand-600 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
-    <!-- Navbar Container -->
-    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 lg:px-8 py-3.5 transition-all">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-            
-            <!-- Logo e Status da API -->
-            <div class="flex items-center justify-between w-full md:w-auto">
-                <div id="brand-logo-btn" class="flex items-center gap-3 cursor-pointer group hover:opacity-90 transition" title="Voltar ao Início">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-accent flex items-center justify-center shadow-lg shadow-brand-600/30 group-hover:scale-105 transition-transform">
-                        <i class="fa-solid fa-crown text-white text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent flex items-center gap-1.5">
-                            Rei dos Canais <span class="text-xs px-2 py-0.5 rounded bg-brand-600/20 text-brand-500 font-semibold border border-brand-500/30">WEB</span>
-                        </h1>
-                        <p class="text-[11px] text-slate-400 group-hover:text-brand-500 transition-colors">
-                            <i class="fa-solid fa-house text-[10px] mr-0.5"></i> Clique para voltar ao início
-                        </p>
-                    </div>
-                </div>
-
-                <!-- API Status Badge (Mobile inline) -->
-                <div class="flex items-center gap-2 md:hidden">
-                    <span id="api-status-badge-mobile" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">
-                        <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></span>
-                        <span id="api-status-text-mobile">Testando...</span>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Global Search Input with Debounce -->
-            <div class="relative w-full md:max-w-md">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input 
-                    type="text" 
-                    id="global-search-input" 
-                    placeholder="Buscar canais, jogos, futebol, programas..." 
-                    class="w-full bg-slate-900/90 text-slate-100 placeholder-slate-500 text-sm rounded-xl pl-10 pr-10 py-2.5 border border-slate-700/60 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
-                >
-                <button id="clear-search-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                </button>
-            </div>
-
-            <!-- API Status & Mode Switcher (Desktop) -->
-            <div class="hidden md:flex items-center gap-3">
-                <!-- CORS / Mode Notice Button -->
-                <button id="data-source-btn" title="Alternar Modo de Dados" class="flex items-center gap-2 text-xs bg-slate-800/80 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition">
-                    <i class="fa-solid fa-server text-brand-500"></i>
-                    <span id="data-source-text" class="text-slate-300 font-medium">API Direta</span>
-                </button>
-
-                <!-- Health Badge -->
-                <span id="api-status-badge" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800/90 text-slate-300 border border-slate-700/80 shadow-inner">
-                    <span id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
-                    <span id="api-status-text">Verificando API...</span>
-                </span>
-            </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <nav class="max-w-7xl mx-auto mt-4 pt-2 border-t border-slate-800/60 flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <button data-tab="channels" class="nav-tab active flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition text-white bg-brand-600 shadow-md shadow-brand-600/20">
-                <i class="fa-solid fa-house"></i> Início / Canais
-            </button>
-            <button data-tab="sports" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
-                <i class="fa-solid fa-trophy text-amber-500"></i> Esportes Ao Vivo
-                <span id="sports-live-count" class="hidden px-1.5 py-0.5 rounded-full text-[10px] bg-brand-accent text-white font-bold">0</span>
-            </button>
-            <button data-tab="categories" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
-                <i class="fa-solid fa-layer-group"></i> Categorias
-            </button>
-            <button data-tab="favorites" class="nav-tab flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
-                <i class="fa-solid fa-heart text-rose-500"></i> Favoritos
-                <span id="favorites-count" class="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-700 text-slate-200 font-bold">0</span>
-            </button>
-        </nav>
-    </header>
-
-    <!-- CORS Warning Banner (Hidden by default) -->
-    <div id="cors-warning-banner" class="hidden bg-amber-500/10 border-b border-amber-500/30 px-4 py-2.5">
-        <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm text-amber-200 gap-2">
+  <!-- Header / Navbar -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-4">
+        
+        <!-- Logo -->
+        <div class="flex items-center gap-3 cursor-pointer group" onclick="goHome()">
+          <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+            <i data-lucide="tv" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
             <div class="flex items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base"></i>
-                <span>Bloqueio de CORS detectado ou API indisponível diretamente pelo navegador. Usando dados otimizados de fallback.</span>
+              <span class="font-bold text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-300 bg-clip-text text-transparent">Rei dos Canais</span>
+              <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-semibold">Web</span>
             </div>
-            <button id="toggle-mock-mode-btn" class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 rounded text-amber-300 font-medium whitespace-nowrap transition">
-                Tentar API Novamente
-            </button>
+            <p class="text-xs text-slate-400 flex items-center gap-1">
+              <i data-lucide="home" class="w-3 h-3"></i> Clique para voltar ao início
+            </p>
+          </div>
         </div>
+
+        <!-- Global Search Bar -->
+        <div class="flex-1 max-w-xl hidden md:block">
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="Buscar canais, jogos, futebol, programas..." 
+              class="w-full bg-slate-950/80 border border-slate-800 rounded-full pl-10 pr-10 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+              oninput="handleSearch(this.value)"
+            />
+            <button id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white" onclick="clearSearch()">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode Toggle & Status Indicator -->
+        <div class="flex items-center gap-3">
+          <button 
+            id="dataSourceToggleBtn"
+            onclick="toggleDataSource()"
+            class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-300 flex items-center gap-2 transition"
+            title="Alternar entre API direta e Mock Local"
+          >
+            <i data-lucide="server" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span id="dataSourceLabel">API Direta</span>
+          </button>
+
+          <!-- Health Status Badge -->
+          <div id="healthBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60 text-xs font-medium text-slate-400">
+            <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" id="healthDot"></span>
+            <span id="healthStatusText">Verificando API...</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Mobile Search Bar -->
+      <div class="pb-3 md:hidden">
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input 
+            type="text" 
+            placeholder="Buscar canais, esportes..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-full pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            oninput="handleSearch(this.value)"
+          />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Navigation Tabs -->
+  <div class="bg-slate-900/50 border-b border-slate-800/80 sticky top-16 z-30 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between overflow-x-auto py-2.5 no-scrollbar gap-2">
+        <div class="flex items-center space-x-2">
+          <button 
+            id="tabAllChannels" 
+            onclick="switchTab('channels')" 
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+          >
+            <i data-lucide="layout-grid" class="w-4 h-4"></i> Início / Canais
+          </button>
+          <button 
+            id="tabSports" 
+            onclick="switchTab('sports')" 
+            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-2"
+          >
+            <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i> Esportes Ao Vivo
+          </button>
+          <button 
+            id="tabCategories" 
+            onclick="switchTab('categories')" 
+            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-2"
+          >
+            <i data-lucide="layers" class="w-4 h-4 text-indigo-400"></i> Categorias
+          </button>
+          <button 
+            id="tabFavorites" 
+            onclick="switchTab('favorites')" 
+            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-2"
+          >
+            <i data-lucide="heart" class="w-4 h-4 text-rose-500"></i> Favoritos
+            <span id="favCountBadge" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+          </button>
+        </div>
+
+        <button 
+          onclick="fetchData()" 
+          class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5 text-xs"
+          title="Atualizar dados da API"
+        >
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="refreshIcon"></i>
+          <span class="hidden sm:inline">Atualizar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connection Status Banner -->
+  <div id="connectionBanner" class="hidden bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs text-amber-300">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+        <span id="bannerText">API offline ou bloqueada por CORS. Exibindo dados locais de demonstração.</span>
+      </div>
+      <button onclick="retryConnection()" class="underline font-semibold hover:text-white">Tentar Conectar Novamente</button>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- Categories Filter Bar -->
+    <div id="categoryFilterContainer" class="mb-6 flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+      <!-- Category pills injected via JS -->
     </div>
 
-    <!-- Main Content Area -->
-    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 flex-grow w-full">
+    <!-- Live Search Results Section (Hidden by default) -->
+    <div id="searchResultsSection" class="hidden mb-10">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold flex items-center gap-2 text-indigo-400">
+          <i data-lucide="search" class="w-5 h-5"></i> Resultados para "<span id="searchQueryTerm"></span>"
+        </h2>
+        <span id="searchResultCount" class="text-xs text-slate-400"></span>
+      </div>
+      <div id="searchResultsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+    </div>
 
-        <!-- Category Filters Pill Row (Shown when in Channels or Categories tab) -->
-        <section id="category-pills-section" class="mb-6 overflow-x-auto pb-2 flex items-center gap-2 no-scrollbar">
-            <button class="cat-pill active px-3.5 py-1.5 rounded-full text-xs font-semibold bg-brand-600 text-white border border-brand-500 transition whitespace-nowrap shadow-sm" data-category="ALL">
-                Todas as Categorias
-            </button>
-            <!-- Dynamic Category Pills inserted here -->
-        </section>
+    <!-- Main Grid / Views Container -->
+    <div id="mainContainer">
+      <!-- Loaded dynamically -->
+      <div class="flex flex-col items-center justify-center py-20 text-slate-500 gap-3">
+        <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-indigo-500"></i>
+        <p class="text-sm font-medium">Carregando programação de TV e eventos...</p>
+      </div>
+    </div>
 
-        <!-- Dynamic Title & Stats Header -->
-        <div class="flex items-center justify-between mb-6">
-            <h2 id="section-title" class="text-xl font-bold flex items-center gap-2 text-slate-100">
-                <i class="fa-solid fa-layer-group text-brand-500"></i> Canais Agrupados por Categoria
-            </h2>
-            <span id="items-count-badge" class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
-                Carregando...
-            </span>
-        </div>
+  </main>
 
-        <!-- Skeleton Loader Container -->
-        <div id="skeleton-loader" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <!-- 8 Skeleton cards generated by JS -->
-        </div>
-
-        <!-- Empty State Container -->
-        <div id="empty-state" class="hidden flex-col items-center justify-center py-16 text-center">
-            <div class="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center mb-4 text-slate-500 text-2xl">
-                <i class="fa-solid fa-tv-slash"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-slate-200 mb-1">Nenhum canal ou evento encontrado</h3>
-            <p class="text-sm text-slate-400 max-w-md">Tente ajustar o termo da sua pesquisa ou selecione outra categoria nos filtros acima.</p>
-        </div>
-
-        <!-- Main Content Area (Grouped Sections or Dynamic Grid) -->
-        <div id="content-grid" class="space-y-8">
-            <!-- Dynamic Grouped Category Sections or Card Grids inserted here -->
-        </div>
-
-        <!-- Sports Section View (When Sports Tab active) -->
-        <div id="sports-container" class="hidden space-y-8">
-            <!-- Live Events Row -->
+  <!-- Player Modal -->
+  <div id="playerModal" class="fixed inset-0 z-50 hidden bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6" onclick="handleModalBgClick(event)">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-150" onclick="event.stopPropagation()">
+      
+      <!-- Player Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+        <div class="flex items-center gap-3">
+          <button onclick="closeModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar aos Canais
+          </button>
+          <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
+          <div class="flex items-center gap-3">
+            <img id="modalLogo" src="" alt="Logo" class="w-8 h-8 rounded object-cover bg-slate-950 border border-slate-800">
             <div>
-                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2 mb-4">
-                    <span class="w-2.5 h-2.5 rounded-full bg-brand-accent animate-ping"></span>
-                    <i class="fa-solid fa-circle text-brand-accent text-xs"></i> Eventos Ao Vivo Agora
-                </h3>
-                <div id="sports-live-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Live sports inserted here -->
-                </div>
+              <h3 id="modalTitle" class="font-bold text-white text-base leading-tight">--</h3>
+              <p id="modalCategory" class="text-xs text-indigo-400 font-medium">--</p>
             </div>
-
-            <!-- Upcoming Events Row -->
-            <div>
-                <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2 mb-4">
-                    <i class="fa-regular fa-clock text-amber-400"></i> Em Breve / Agendados
-                </h3>
-                <div id="sports-upcoming-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Upcoming sports inserted here -->
-                </div>
-            </div>
+          </div>
         </div>
 
-    </main>
-
-    <!-- Footer -->
-    <footer class="border-t border-slate-800 bg-slate-950/80 py-6 px-4 mt-12 text-center text-xs text-slate-500">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p>© 2026 Rei dos Canais Web Client. Interface não oficial utilizando API pública.</p>
-            <div class="flex items-center gap-4">
-                <a href="https://api.reidoscanais.my" target="_blank" class="hover:text-slate-300 transition flex items-center gap-1">
-                    <i class="fa-solid fa-code"></i> Documentação API
-                </a>
-                <span class="text-slate-700">|</span>
-                <span class="text-slate-400"><i class="fa-solid fa-shield-halved text-emerald-500"></i> Conexão Segura</span>
-            </div>
+        <div class="flex items-center gap-2">
+          <button id="modalFavBtn" onclick="toggleCurrentModalFavorite()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-500 transition">
+            <i data-lucide="heart" class="w-5 h-5"></i>
+          </button>
+          <button onclick="closeModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
         </div>
-    </footer>
+      </div>
 
-    <!-- PLAYER & EMBED MODAL -->
-    <div id="player-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md hidden transition-all duration-300">
-        <div class="glass-panel w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl border border-slate-700 flex flex-col max-h-[90vh]">
-            
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900/90">
-                <div class="flex items-center gap-3 overflow-hidden">
-                    <button id="back-to-list-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex-shrink-0 group">
-                        <i class="fa-solid fa-arrow-left group-hover:-translate-x-0.5 transition-transform"></i> Voltar
-                    </button>
-                    <img id="modal-item-logo" src="" alt="Logo" class="w-9 h-9 object-contain rounded bg-slate-800 p-1 border border-slate-700 flex-shrink-0" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=TV'">
-                    <div class="truncate">
-                        <h3 id="modal-item-title" class="font-bold text-slate-100 text-base truncate">Nome do Canal</h3>
-                        <p id="modal-item-subtitle" class="text-xs text-slate-400 truncate">Categoria / EPG</p>
-                    </div>
-                </div>
-                <button id="close-modal-btn" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition flex-shrink-0" title="Fechar Player (ESC)">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+      <!-- Player Frame -->
+      <div class="bg-black aspect-video-container relative group">
+        <iframe 
+          id="videoIframe" 
+          src="" 
+          frameborder="0" 
+          allowfullscreen 
+          allow="autoplay; encrypted-media; picture-in-picture"
+          class="w-full h-full"
+        ></iframe>
+      </div>
+
+      <!-- Server & Embed Controls -->
+      <div class="p-4 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        
+        <!-- Server Selectors -->
+        <div class="flex items-center gap-2 flex-wrap" id="serverContainer">
+          <span class="text-xs font-medium text-slate-400 flex items-center gap-1">
+            <i data-lucide="server" class="w-3.5 h-3.5"></i> Servidor:
+          </span>
+          <!-- Dynamic Buttons for Embeds -->
+        </div>
+
+        <!-- Copy Embed Code Button -->
+        <button 
+          onclick="copyEmbedCode()" 
+          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 flex items-center gap-2 transition ml-auto sm:ml-0"
+        >
+          <i data-lucide="code" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span id="copyEmbedText">Copiar Embed</span>
+        </button>
+
+      </div>
+
+      <!-- EPG Details / Match Info inside Modal -->
+      <div class="p-4 bg-slate-950/60 overflow-y-auto max-h-48 border-t border-slate-800/80">
+        <div id="modalEpgDetails">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 border-t border-slate-800 py-6 mt-12 text-slate-400 text-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div class="bg-indigo-600/20 p-1.5 rounded text-indigo-400">
+          <i data-lucide="tv" class="w-4 h-4"></i>
+        </div>
+        <p>© 2026 Rei dos Canais Web Client. Interface não oficial utilizando API pública.</p>
+      </div>
+      <div class="flex items-center gap-4 text-slate-500">
+        <a href="https://api.reidoscanais.my" target="_blank" class="hover:text-slate-300 flex items-center gap-1">
+          <i data-lucide="external-link" class="w-3 h-3"></i> Documentação API
+        </a>
+        <span class="flex items-center gap-1 text-emerald-400">
+          <i data-lucide="shield-check" class="w-3 h-3"></i> Conexão Segura
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic JS -->
+  <script>
+    // Configuration & State
+    const API_BASE = 'https://api.reidoscanais.my';
+    const FETCH_TIMEOUT_MS = 3500; // 3.5s timeout to prevent stuck screen
+    
+    let state = {
+      activeTab: 'channels', // 'channels', 'sports', 'categories', 'favorites'
+      channels: [],
+      sports: [],
+      categories: [],
+      favorites: JSON.parse(localStorage.getItem('rdc_favorites') || '[]'),
+      selectedCategory: 'all',
+      activeEmbedUrl: '',
+      currentPlayingItem: null,
+      useMockFallback: false,
+      searchQuery: '',
+      isFetching: false
+    };
+
+    // Mock Dataset (Used automatically when API times out or hits CORS restriction)
+    const MOCK_DATA = {
+      channels: [
+        {
+          id: "globo",
+          name: "Globo SP",
+          description: "Canal aberto com sinal em HD de São Paulo",
+          logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Rede_Globo_logo.svg/300px-Rede_Globo_logo.svg.png",
+          category: "Entretenimento",
+          embeds: [
+            { provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream?channel=UC" },
+            { provider: "Servidor 2", quality: "SD", embed_url: "https://www.youtube.com/embed/live_stream?channel=UC" }
+          ],
+          epg: {
+            current: {
+              title: "Jornal Nacional",
+              description: "As principais notícias do Brasil e do mundo com apresentação jornalística.",
+              formatted_time: "Das 20:30 às 21:30",
+              start_time: Math.floor(Date.now() / 1000) - 1200,
+              end_time: Math.floor(Date.now() / 1000) + 1800
+            },
+            next: { title: "Novela das 9", description: "Capítulo imperdível de hoje." }
+          }
+        },
+        {
+          id: "sportv",
+          name: "SporTV HD",
+          description: "O melhor do esporte nacional e internacional",
+          logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/SporTV_logo.svg/320px-SporTV_logo.svg.png",
+          category: "Esportes",
+          embeds: [{ provider: "Servidor Principal", quality: "FHD", embed_url: "https://www.youtube.com/embed/live_stream" }],
+          epg: {
+            current: {
+              title: "Tá Na Área",
+              description: "Debates e destaques da rodada.",
+              formatted_time: "Das 18:00 às 20:00",
+              start_time: Math.floor(Date.now() / 1000) - 600,
+              end_time: Math.floor(Date.now() / 1000) + 2400
+            }
+          }
+        },
+        {
+          id: "espn",
+          name: "ESPN Brasil",
+          description: "Líder mundial em esportes",
+          logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/320px-ESPN_wordmark.svg.png",
+          category: "Esportes",
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
+          epg: {
+            current: {
+              title: "ESPN F360",
+              description: "Informação, análise e debate diário.",
+              formatted_time: "Ao Vivo",
+              start_time: Math.floor(Date.now() / 1000) - 900,
+              end_time: Math.floor(Date.now() / 1000) + 1500
+            }
+          }
+        },
+        {
+          id: "gnc",
+          name: "GloboNews",
+          description: "Nunca desliga, Notícias 24 horas",
+          logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/GloboNews_2010.svg/320px-GloboNews_2010.svg.png",
+          category: "Notícias",
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
+          epg: {
+            current: {
+              title: "Edição das 18h",
+              description: "Análises de política e economia.",
+              formatted_time: "18:00 - 20:00",
+              start_time: Math.floor(Date.now() / 1000) - 300,
+              end_time: Math.floor(Date.now() / 1000) + 3300
+            }
+          }
+        },
+        {
+          id: "megapix",
+          name: "Megapix",
+          description: "Os melhores filmes dublados",
+          logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Megapix_logo.svg/320px-Megapix_logo.svg.png",
+          category: "Filmes e Séries",
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
+          epg: {
+            current: {
+              title: "Velozes e Furiosos 9",
+              description: "Ação e adrenalina sem limites.",
+              formatted_time: "19:30 - 21:40",
+              start_time: Math.floor(Date.now() / 1000) - 1800,
+              end_time: Math.floor(Date.now() / 1000) + 3600
+            }
+          }
+        },
+        {
+          id: "cartoon",
+          name: "Cartoon Network",
+          description: "Animações e desenhos para todas as idades",
+          logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Cartoon_Network_2010_logo.svg/320px-Cartoon_Network_2010_logo.svg.png",
+          category: "Infantil",
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
+          epg: {
+            current: {
+              title: "O Incrível Mundo de Gumball",
+              description: "Episódios em sequência.",
+              formatted_time: "Em exibição",
+              start_time: Math.floor(Date.now() / 1000) - 300,
+              end_time: Math.floor(Date.now() / 1000) + 900
+            }
+          }
+        }
+      ],
+      sports: [
+        {
+          id: "fla-x-pal-2026",
+          title: "Flamengo x Palmeiras",
+          description: "Grande confronto decisivo pelo Campeonato Brasileiro 2026",
+          category: "Futebol",
+          competition: "Brasileirão Série A",
+          teams: {
+            home: { name: "Flamengo", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Flamengo_braz_logo.svg" },
+            away: { name: "Palmeiras", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Palmeiras_logo.svg" }
+          },
+          start_time: "Hoje às 21:30",
+          status: "live",
+          popular: true,
+          embeds: [{ provider: "Premiere HD", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream" }]
+        },
+        {
+          id: "real-x-barca-2026",
+          title: "Real Madrid x Barcelona",
+          description: "El Clásico da La Liga espanhola",
+          category: "Futebol",
+          competition: "La Liga",
+          teams: {
+            home: { name: "Real Madrid", logo: "https://upload.wikimedia.org/wikipedia/pt/9/98/Real_Madrid.png" },
+            away: { name: "Barcelona", logo: "https://upload.wikimedia.org/wikipedia/pt/4/43/FCBarcelona.png" }
+          },
+          start_time: "Amanhã às 16:00",
+          status: "upcoming",
+          popular: true,
+          embeds: [{ provider: "ESPN HD", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream" }]
+        }
+      ]
+    };
+
+    // Helper for Fetching with strict timeout
+    async function fetchWithTimeout(resource, options = {}) {
+      const { timeout = FETCH_TIMEOUT_MS } = options;
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      
+      try {
+        const response = await fetch(resource, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+      } catch (error) {
+        clearTimeout(id);
+        throw error;
+      }
+    }
+
+    // App Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      fetchData();
+      
+      // Global Escape listener to close modals
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+    });
+
+    // Reset view to Home
+    function goHome() {
+      clearSearch();
+      state.selectedCategory = 'all';
+      switchTab('channels');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Fetch Health & Data
+    async function fetchData() {
+      setLoadingState(true);
+      
+      if (state.useMockFallback) {
+        loadMockData("Modo de Dados Locais Ativo.");
+        return;
+      }
+
+      try {
+        // Check API Health
+        const healthRes = await fetchWithTimeout(`${API_BASE}/health`, { timeout: 2000 });
+        if (healthRes.ok) {
+          updateHealthBadge(true, "API Online");
+          hideConnectionBanner();
+        } else {
+          throw new Error("API retornou código não saudável");
+        }
+
+        // Fetch Channels and Sports in parallel
+        const [channelsRes, sportsRes] = await Promise.all([
+          fetchWithTimeout(`${API_BASE}/channels`),
+          fetchWithTimeout(`${API_BASE}/sports`)
+        ]);
+
+        const channelsData = await channelsRes.json();
+        const sportsData = await sportsRes.json();
+
+        state.channels = channelsData.data || [];
+        state.sports = sportsData.data || [];
+        
+        extractCategories();
+        renderView();
+
+      } catch (err) {
+        console.warn("Falha na comunicação direta com a API Rei dos Canais:", err);
+        updateHealthBadge(false, "API Inacessível (CORS/Offline)");
+        showConnectionBanner("API indisponível ou bloqueada pelo navegador. Usando dados locais de fallback.");
+        loadMockData();
+      } finally {
+        setLoadingState(false);
+      }
+    }
+
+    function loadMockData(reason) {
+      state.channels = MOCK_DATA.channels;
+      state.sports = MOCK_DATA.sports;
+      extractCategories();
+      renderView();
+      setLoadingState(false);
+    }
+
+    function retryConnection() {
+      state.useMockFallback = false;
+      document.getElementById('dataSourceLabel').innerText = "API Direta";
+      fetchData();
+    }
+
+    function toggleDataSource() {
+      state.useMockFallback = !state.useMockFallback;
+      const label = document.getElementById('dataSourceLabel');
+      if (state.useMockFallback) {
+        label.innerText = "Mock Local";
+        showConnectionBanner("Modo Mock ativado manualmente.");
+      } else {
+        label.innerText = "API Direta";
+        hideConnectionBanner();
+      }
+      fetchData();
+    }
+
+    function updateHealthBadge(isOnline, text) {
+      const dot = document.getElementById('healthDot');
+      const label = document.getElementById('healthStatusText');
+      
+      label.innerText = text;
+      if (isOnline) {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-amber-500";
+      }
+    }
+
+    function showConnectionBanner(msg) {
+      const banner = document.getElementById('connectionBanner');
+      const text = document.getElementById('bannerText');
+      text.innerText = msg;
+      banner.classList.remove('hidden');
+    }
+
+    function hideConnectionBanner() {
+      document.getElementById('connectionBanner').classList.add('hidden');
+    }
+
+    function setLoadingState(isLoading) {
+      const icon = document.getElementById('refreshIcon');
+      if (isLoading) {
+        icon.classList.add('animate-spin');
+      } else {
+        icon.classList.remove('animate-spin');
+      }
+    }
+
+    function extractCategories() {
+      const cats = new Set();
+      state.channels.forEach(c => { if(c.category) cats.add(c.category); });
+      state.sports.forEach(s => { if(s.category) cats.add(s.category); });
+      state.categories = Array.from(cats);
+      renderCategoryPills();
+    }
+
+    // Render Category Filter Pills
+    function renderCategoryPills() {
+      const container = document.getElementById('categoryFilterContainer');
+      if (state.activeTab === 'sports') {
+        container.innerHTML = '';
+        return;
+      }
+
+      let html = `
+        <button 
+          onclick="filterCategory('all')" 
+          class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${state.selectedCategory === 'all' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'}"
+        >
+          Todas as Categorias
+        </button>
+      `;
+
+      state.categories.forEach(cat => {
+        const isActive = state.selectedCategory === cat;
+        html += `
+          <button 
+            onclick="filterCategory('${cat}')" 
+            class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'}"
+          >
+            ${getCategoryIcon(cat)} ${cat}
+          </button>
+        `;
+      });
+
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    function filterCategory(cat) {
+      state.selectedCategory = cat;
+      renderCategoryPills();
+      renderView();
+    }
+
+    function switchTab(tab) {
+      state.activeTab = tab;
+      
+      // Update Tab UI
+      const tabs = ['channels', 'sports', 'categories', 'favorites'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (!btn) return;
+        if (t === tab) {
+          btn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20";
+        } else {
+          btn.className = "px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-2";
+        }
+      });
+
+      renderCategoryPills();
+      renderView();
+    }
+
+    // Category Icon Helpers
+    function getCategoryIcon(cat) {
+      const c = cat.toLowerCase();
+      if (c.includes('esporte') || c.includes('futebol')) return '⚽';
+      if (c.includes('notícia') || c.includes('jornal')) return '📰';
+      if (c.includes('filme') || c.includes('série')) return '🎬';
+      if (c.includes('infantil') || c.includes('desenho')) return '🎨';
+      if (c.includes('variedade') || c.includes('entretenimento')) return '🎭';
+      return '📺';
+    }
+
+    // Main View Dispatcher
+    function renderView() {
+      const container = document.getElementById('mainContainer');
+      updateFavoriteBadge();
+
+      if (state.searchQuery.trim().length > 0) {
+        container.innerHTML = '';
+        return; // Handled by search section
+      }
+
+      if (state.activeTab === 'channels') {
+        renderChannelsGroupedView(container);
+      } else if (state.activeTab === 'sports') {
+        renderSportsView(container);
+      } else if (state.activeTab === 'categories') {
+        renderCategoriesSummaryView(container);
+      } else if (state.activeTab === 'favorites') {
+        renderFavoritesView(container);
+      }
+
+      lucide.createIcons();
+    }
+
+    // Render Channels Grouped by Category
+    function renderChannelsGroupedView(container) {
+      let filteredChannels = state.channels;
+      
+      if (state.selectedCategory !== 'all') {
+        filteredChannels = state.channels.filter(c => c.category === state.selectedCategory);
+      }
+
+      if (filteredChannels.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl">
+            <i data-lucide="tv-2" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+            <h3 class="text-lg font-bold text-slate-300">Nenhum canal encontrado</h3>
+            <p class="text-xs text-slate-500 mt-1">Tente selecionar outra categoria ou buscar na barra superior.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Group Channels by Category
+      const grouped = {};
+      filteredChannels.forEach(ch => {
+        const cat = ch.category || 'Outros';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(ch);
+      });
+
+      let html = `<div class="space-y-8">`;
+
+      for (const [categoryName, channelsList] of Object.entries(grouped)) {
+        html += `
+          <section class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">${getCategoryIcon(categoryName)}</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">${categoryName}</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-indigo-400 font-bold border border-slate-700/60">
+                  ${channelsList.length}
+                </span>
+              </div>
+              ${state.selectedCategory === 'all' ? `
+                <button onclick="filterCategory('${categoryName}')" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1">
+                  Isolar categoria <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                 </button>
+              ` : ''}
             </div>
 
-            <!-- Modal Content Body -->
-            <div class="p-4 sm:p-6 overflow-y-auto space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              ${channelsList.map(ch => createChannelCardHtml(ch)).join('')}
+            </div>
+          </section>
+        `;
+      }
+
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    // HTML Generator for Channel Card
+    function createChannelCardHtml(channel) {
+      const isFav = state.favorites.some(f => f.id === channel.id);
+      const epg = channel.epg?.current;
+      
+      // Calculate EPG progress percentage if available
+      let progressPercent = 0;
+      if (epg && epg.start_time && epg.end_time) {
+        const now = Math.floor(Date.now() / 1000);
+        const total = epg.end_time - epg.start_time;
+        const current = now - epg.start_time;
+        if (total > 0) {
+          progressPercent = Math.max(0, Math.min(100, Math.round((current / total) * 100)));
+        }
+      }
+
+      return `
+        <div class="bg-slate-900 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5 flex flex-col justify-between group relative">
+          <div>
+            <!-- Top bar card -->
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div class="flex items-center gap-3">
+                <img 
+                  src="${channel.logo_url || 'https://via.placeholder.com/48'}" 
+                  alt="${channel.name}"
+                  class="w-10 h-10 rounded-lg object-contain bg-slate-950 p-1 border border-slate-800"
+                  onerror="this.src='https://via.placeholder.com/48?text=TV'"
+                >
+                <div>
+                  <h3 class="font-bold text-white text-sm group-hover:text-indigo-400 transition-colors line-clamp-1">${channel.name}</h3>
+                  <span class="text-[10px] text-slate-400 font-medium">${channel.category || 'Geral'}</span>
+                </div>
+              </div>
+
+              <button 
+                onclick="toggleFavorite('${channel.id}', event)" 
+                class="text-slate-600 hover:text-rose-500 transition p-1"
+                title="Favoritar"
+              >
+                <i data-lucide="heart" class="w-4 h-4 ${isFav ? 'text-rose-500 fill-rose-500' : ''}"></i>
+              </button>
+            </div>
+
+            <!-- EPG Banner -->
+            ${epg ? `
+              <div class="bg-slate-950/80 rounded-lg p-2.5 border border-slate-800/80 mb-3 space-y-1">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="text-indigo-300 font-semibold truncate flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> ${epg.title || 'No Ar'}
+                  </span>
+                  <span class="text-slate-500 text-[10px]">${epg.formatted_time || ''}</span>
+                </div>
+                ${epg.description ? `<p class="text-[10px] text-slate-400 line-clamp-1">${epg.description}</p>` : ''}
                 
-                <!-- Video Player Canvas Container (16:9 Aspect Ratio) -->
-                <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-inner border border-slate-800 group">
-                    <iframe 
-                        id="video-player-iframe" 
-                        src="" 
-                        class="w-full h-full border-0" 
-                        allow="autoplay; encrypted-media; picture-in-picture" 
-                        allowfullscreen>
-                    </iframe>
-                    <!-- Player Loading overlay -->
-                    <div id="iframe-loader" class="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center gap-3 text-slate-400 pointer-events-none transition-opacity duration-300">
-                        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-brand-500"></i>
-                        <span class="text-xs font-medium">Carregando transmissões ao vivo...</span>
-                    </div>
-                </div>
+                ${progressPercent > 0 ? `
+                  <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mt-1.5">
+                    <div class="bg-indigo-500 h-full rounded-full" style="width: ${progressPercent}%"></div>
+                  </div>
+                ` : ''}
+              </div>
+            ` : `
+              <p class="text-[11px] text-slate-500 italic mb-3">Sem guia EPG disponível no momento</p>
+            `}
+          </div>
 
-                <!-- Server Selector & Options -->
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
-                    <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-server text-brand-500"></i> Servidor:
-                        </span>
-                        <div id="modal-embed-servers" class="flex flex-wrap gap-1.5">
-                            <!-- Dynamic Server Buttons -->
-                        </div>
-                    </div>
-
-                    <!-- Embed Copy Actions -->
-                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                        <button id="copy-embed-btn" class="w-full sm:w-auto px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 flex items-center justify-center gap-1.5 transition">
-                            <i class="fa-regular fa-copy"></i> Copiar Código Embed
-                        </button>
-                    </div>
-                </div>
-
-                <!-- EPG / Event Details Box -->
-                <div id="modal-epg-box" class="bg-slate-900/40 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-check text-brand-500"></i> Programação Atual & A Seguir
-                    </h4>
-
-                    <!-- EPG Current -->
-                    <div id="epg-current-container" class="space-y-1.5">
-                        <div class="flex items-center justify-between text-xs">
-                            <span id="epg-current-title" class="font-semibold text-slate-200">Buscando guia de programação...</span>
-                            <span id="epg-current-time" class="text-slate-400 text-[11px]">--:--</span>
-                        </div>
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div id="epg-progress-bar" class="bg-brand-600 h-full w-0 transition-all duration-500"></div>
-                        </div>
-                        <p id="epg-current-desc" class="text-xs text-slate-400 line-clamp-2 mt-1"></p>
-                    </div>
-
-                    <!-- EPG Next -->
-                    <div id="epg-next-container" class="pt-2 border-t border-slate-800 text-xs flex items-start gap-2">
-                        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-medium text-[10px] whitespace-nowrap">A Seguir</span>
-                        <div>
-                            <p id="epg-next-title" class="font-medium text-slate-300">--</p>
-                            <p id="epg-next-time" class="text-[11px] text-slate-500"></p>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+          <!-- Action Button -->
+          <button 
+            onclick="openPlayerModal('channel', '${channel.id}')"
+            class="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white text-xs font-bold transition flex items-center justify-center gap-2 group-hover:shadow-md"
+          >
+            <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> Assistir Agora
+          </button>
         </div>
-    </div>
+      `;
+    }
 
-    <!-- Toast Notification Popup -->
-    <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-800 text-slate-100 text-xs sm:text-sm font-medium px-4 py-3 rounded-xl border border-slate-700 shadow-xl flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300">
-        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-        <span id="toast-msg">Mensagem</span>
-    </div>
+    // Render Sports View
+    function renderSportsView(container) {
+      if (state.sports.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl">
+            <i data-lucide="trophy" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+            <h3 class="text-lg font-bold text-slate-300">Nenhum evento esportivo encontrado</h3>
+            <p class="text-xs text-slate-500 mt-1">Verifique mais tarde para transmissões ao vivo de futebol e lutas.</p>
+          </div>
+        `;
+        return;
+      }
 
-    <!-- JAVASCRIPT APPLICATION LOGIC -->
-    <script>
-        /**
-         * Rei dos Canais Application Logic
-         */
+      let html = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <i data-lucide="activity" class="w-5 h-5 text-amber-400"></i> Transmissões Esportivas Ao Vivo & Programadas
+            </h2>
+            <span class="text-xs text-slate-400 font-semibold">${state.sports.length} Eventos</span>
+          </div>
 
-        const API_BASE_URL = 'https://api.reidoscanais.my';
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${state.sports.map(sport => {
+              const isLive = sport.status === 'live';
+              return `
+                <div class="bg-slate-900 border ${isLive ? 'border-amber-500/40' : 'border-slate-800'} rounded-xl p-4 transition hover:border-amber-500/70 flex flex-col justify-between space-y-4">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${isLive ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800 text-slate-400'}">
+                      ${isLive ? '● AO VIVO AGORA' : sport.start_time || 'Em Breve'}
+                    </span>
+                    <span class="text-xs text-amber-400 font-semibold flex items-center gap-1">
+                      <i data-lucide="shield" class="w-3.5 h-3.5"></i> ${sport.competition || sport.category || 'Esporte'}
+                    </span>
+                  </div>
 
-        // MOCK DATA FALLBACK (In case of browser CORS block or API downtime)
-        const MOCK_DATA = {
-            channels: [
-                {
-                    id: "globo-sp",
-                    name: "Globo SP HD",
-                    description: "Transmissão ao vivo dos principais programas da Rede Globo SP.",
-                    logo_url: "https://placehold.co/120x120/1e293b/3b82f6?text=GLOBO",
-                    category: "Entretenimento",
-                    embeds: [
-                        { provider: "Servidor Principal HD", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream?channel=UC123" },
-                        { provider: "Servidor Backup SD", quality: "720p", embed_url: "https://www.youtube.com/embed/live_stream?channel=UC456" }
-                    ],
-                    epg: {
-                        current: {
-                            title: "Jornal Nacional",
-                            description: "Principais notícias do Brasil e do mundo com cobertura completa ao vivo.",
-                            formatted_time: "Hoje, 20:30 às 21:30",
-                            start_time: Math.floor(Date.now() / 1000) - 900,
-                            end_time: Math.floor(Date.now() / 1000) + 2700
-                        },
-                        next: {
-                            title: "Novela das 9: Renascer",
-                            formatted_time: "Hoje, 21:30 às 22:45"
-                        }
-                    }
-                },
-                {
-                    id: "sportv-hd",
-                    name: "SporTV HD",
-                    description: "O canal campeão em cobertura de esportes ao vivo, análises e jogos.",
-                    logo_url: "https://placehold.co/120x120/1e293b/e11d48?text=SPORTV",
-                    category: "Esportes",
-                    embeds: [
-                        { provider: "Servidor 1", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream?channel=UC789" }
-                    ],
-                    epg: {
-                        current: {
-                            title: "Troca de Passe",
-                            description: "Debate ao vivo sobre a rodada do futebol brasileiro e internacional.",
-                            formatted_time: "Hoje, 20:00 às 22:00",
-                            start_time: Math.floor(Date.now() / 1000) - 1800,
-                            end_time: Math.floor(Date.now() / 1000) + 1800
-                        },
-                        next: {
-                            title: "Tá Na Área",
-                            formatted_time: "Hoje, 22:00 às 23:00"
-                        }
-                    }
-                },
-                {
-                    id: "espn-brasil",
-                    name: "ESPN Brasil",
-                    description: "Tudo sobre futebol internacional, NBA, NFL e jornalismo esportivo de ponta.",
-                    logo_url: "https://placehold.co/120x120/1e293b/e11d48?text=ESPN",
-                    category: "Esportes",
-                    embeds: [
-                        { provider: "Servidor Fast", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream?channel=ESPN1" }
-                    ],
-                    epg: {
-                        current: {
-                            title: "Linha de Passe",
-                            description: "Mesa redonda com análises aprofundadas dos últimos confrontos.",
-                            formatted_time: "Hoje, 21:00 às 22:30",
-                            start_time: Math.floor(Date.now() / 1000) - 600,
-                            end_time: Math.floor(Date.now() / 1000) + 3000
-                        },
-                        next: {
-                            title: "SportsCenter Brasil",
-                            formatted_time: "Hoje, 22:30 às 23:30"
-                        }
-                    }
-                },
-                {
-                    id: "cazetv",
-                    name: "CazéTV",
-                    description: "Canal do Casimiro transmitindo eventos esportivos e react ao vivo.",
-                    logo_url: "https://placehold.co/120x120/1e293b/eab308?text=CAZE",
-                    category: "Esportes",
-                    embeds: [
-                        { provider: "YouTube Stream", quality: "4K", embed_url: "https://www.youtube.com/embed/live_stream?channel=CAZE" }
-                    ],
-                    epg: {
-                        current: {
-                            title: "Pré-Jogo: UEFA Champions League",
-                            description: "Comentários irreverentes e análise das formações das equipes.",
-                            formatted_time: "Hoje, 19:30 às 21:00",
-                            start_time: Math.floor(Date.now() / 1000) - 1200,
-                            end_time: Math.floor(Date.now() / 1000) + 1200
-                        },
-                        next: {
-                            title: "React e Melhores Momentos",
-                            formatted_time: "Hoje, 21:00 às 23:00"
-                        }
-                    }
-                },
-                {
-                    id: "gnews",
-                    name: "GloboNews",
-                    description: "Notícias do Brasil e do mundo 24 horas no ar ao vivo.",
-                    logo_url: "https://placehold.co/120x120/1e293b/2563eb?text=GNEWS",
-                    category: "Notícias",
-                    embeds: [
-                        { provider: "Servidor Notícias", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream?channel=GNEWS" }
-                    ],
-                    epg: {
-                        current: {
-                            title: "Em Pauta",
-                            description: "Análise dos fatos mais relevantes do dia com time de comentaristas.",
-                            formatted_time: "Hoje, 20:00 às 22:00",
-                            start_time: Math.floor(Date.now() / 1000) - 2000,
-                            end_time: Math.floor(Date.now() / 1000) + 1600
-                        },
-                        next: {
-                            title: "Jornal das Dez",
-                            formatted_time: "Hoje, 22:00 às 23:30"
-                        }
-                    }
-                },
-                {
-                    id: "hbo-max",
-                    name: "HBO Signature",
-                    description: "Filmes aclamados, séries exclusivas e produções originais.",
-                    logo_url: "https://placehold.co/120x120/1e293b/a855f7?text=HBO",
-                    category: "Filmes e Séries",
-                    embeds: [
-                        { provider: "Servidor Cine", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream?channel=HBO" }
-                    ],
-                    epg: {
-                        current: {
-                            title: "Filme: House of the Dragon",
-                            description: "Episódio especial da saga dos Targaryen em alta definição.",
-                            formatted_time: "Hoje, 21:00 às 22:15",
-                            start_time: Math.floor(Date.now() / 1000) - 300,
-                            end_time: Math.floor(Date.now() / 1000) + 3300
-                        },
-                        next: {
-                            title: "The Last of Us",
-                            formatted_time: "Hoje, 22:15 às 23:15"
-                        }
-                    }
-                }
-            ],
-            sports: [
-                {
-                    id: "fla-x-flu-2026",
-                    title: "Flamengo x Fluminense",
-                    description: "Clássico Fla-Flu decisivo pelo Campeonato Carioca.",
-                    poster: "https://placehold.co/600x350/1e293b/e11d48?text=FLA+x+FLU",
-                    category: "Futebol",
-                    competition: "Campeonato Carioca",
-                    teams: {
-                        home: { name: "Flamengo", logo: "https://placehold.co/80x80/e11d48/ffffff?text=FLA" },
-                        away: { name: "Fluminense", logo: "https://placehold.co/80x80/15803d/ffffff?text=FLU" }
-                    },
-                    start_time: "2026-11-10 21:30:00",
-                    start_timestamp: Math.floor(Date.now() / 1000) - 1800,
-                    status: "live",
-                    popular: true,
-                    embeds: [
-                        { provider: "Premiere HD", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream?channel=FLAFLU" }
-                    ]
-                },
-                {
-                    id: "rea-x-bar-2026",
-                    title: "Real Madrid x Barcelona",
-                    description: "El Clásico histórico válido por La Liga San Mames.",
-                    poster: "https://placehold.co/600x350/1e293b/2563eb?text=REAL+x+BARCA",
-                    category: "Futebol",
-                    competition: "La Liga",
-                    teams: {
-                        home: { name: "Real Madrid", logo: "https://placehold.co/80x80/ffffff/000000?text=RMA" },
-                        away: { name: "Barcelona", logo: "https://placehold.co/80x80/1d4ed8/ffffff?text=BAR" }
-                    },
-                    start_time: "2026-11-10 22:00:00",
-                    start_timestamp: Math.floor(Date.now() / 1000) + 1800,
-                    status: "upcoming",
-                    popular: true,
-                    embeds: [
-                        { provider: "ESPN 1", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream?channel=ELCLASICO" }
-                    ]
-                },
-                {
-                    id: "lakers-x-celtics",
-                    title: "LA Lakers x Boston Celtics",
-                    description: "Temporada Regular da NBA ao vivo.",
-                    poster: "https://placehold.co/600x350/1e293b/eab308?text=NBA+LAK+x+CEL",
-                    category: "Basquete",
-                    competition: "NBA Regular Season",
-                    teams: {
-                        home: { name: "Lakers", logo: "https://placehold.co/80x80/a855f7/ffffff?text=LAK" },
-                        away: { name: "Celtics", logo: "https://placehold.co/80x80/15803d/ffffff?text=CEL" }
-                    },
-                    start_time: "2026-11-10 23:30:00",
-                    start_timestamp: Math.floor(Date.now() / 1000) + 7200,
-                    status: "upcoming",
-                    popular: false,
-                    embeds: [
-                        { provider: "NBA League Pass", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream?channel=NBA" }
-                    ]
-                }
-            ],
-            categories: ["Entretenimento", "Esportes", "Notícias", "Filmes e Séries", "Infantil", "Documentários"]
-        };
+                  <!-- Teams / Title -->
+                  <div class="py-2">
+                    ${sport.teams ? `
+                      <div class="flex items-center justify-between gap-4 px-2">
+                        <div class="flex flex-col items-center text-center flex-1">
+                          <img src="${sport.teams.home?.logo || ''}" class="w-12 h-12 object-contain mb-1" onerror="this.src='https://via.placeholder.com/48?text=Time'">
+                          <span class="font-bold text-xs text-white">${sport.teams.home?.name || 'Casa'}</span>
+                        </div>
+                        <span class="text-slate-600 font-extrabold text-sm">VS</span>
+                        <div class="flex flex-col items-center text-center flex-1">
+                          <img src="${sport.teams.away?.logo || ''}" class="w-12 h-12 object-contain mb-1" onerror="this.src='https://via.placeholder.com/48?text=Time'">
+                          <span class="font-bold text-xs text-white">${sport.teams.away?.name || 'Fora'}</span>
+                        </div>
+                      </div>
+                    ` : `
+                      <h3 class="font-bold text-base text-white">${sport.title}</h3>
+                      <p class="text-xs text-slate-400 mt-1">${sport.description || ''}</p>
+                    `}
+                  </div>
 
-        // Application State
-        const state = {
-            currentTab: 'channels', // 'channels', 'sports', 'categories', 'favorites'
-            selectedCategory: 'ALL',
-            channels: [],
-            sports: [],
-            categories: [],
-            favorites: JSON.parse(localStorage.getItem('rei_favorites') || '[]'),
-            useMock: false,
-            searchQuery: '',
-            searchDebounceTimeout: null,
-            activeModalItem: null
-        };
+                  <button 
+                    onclick="openPlayerModal('sport', '${sport.id}')"
+                    class="w-full py-2 rounded-lg ${isLive ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'} text-xs font-bold transition flex items-center justify-center gap-2"
+                  >
+                    <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> ${isLive ? 'Assistir Transmissão' : 'Ver Detalhes do Evento'}
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
 
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', () => {
-            initApp();
+      container.innerHTML = html;
+    }
+
+    // Render Categories Overview
+    function renderCategoriesSummaryView(container) {
+      let html = `
+        <div class="space-y-6">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="layers" class="w-5 h-5 text-indigo-400"></i> Explorar por Categoria
+          </h2>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            ${state.categories.map(cat => {
+              const count = state.channels.filter(c => c.category === cat).length;
+              return `
+                <div 
+                  onclick="filterCategory('${cat}'); switchTab('channels');"
+                  class="bg-slate-900 border border-slate-800 hover:border-indigo-500 rounded-xl p-5 cursor-pointer transition hover:scale-105 flex flex-col items-center text-center group"
+                >
+                  <span class="text-3xl mb-2">${getCategoryIcon(cat)}</span>
+                  <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition">${cat}</h3>
+                  <span class="text-xs text-slate-500 mt-1 font-medium">${count} canais</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // Render Favorites View
+    function renderFavoritesView(container) {
+      if (state.favorites.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl">
+            <i data-lucide="heart-off" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
+            <h3 class="text-lg font-bold text-slate-300">Você ainda não possui favoritos</h3>
+            <p class="text-xs text-slate-500 mt-1">Clique no ícone de coração nos canais para salvar aqui.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = `
+        <div class="space-y-4">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i data-lucide="heart" class="w-5 h-5 text-rose-500"></i> Meus Canais Favoritos (${state.favorites.length})
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            ${state.favorites.map(ch => createChannelCardHtml(ch)).join('')}
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // Modal Player Logic
+    function openPlayerModal(type, itemId) {
+      let item = null;
+      if (type === 'channel') {
+        item = state.channels.find(c => c.id === itemId);
+      } else {
+        item = state.sports.find(s => s.id === itemId);
+      }
+
+      if (!item) return;
+
+      state.currentPlayingItem = item;
+
+      // Populate Header
+      document.getElementById('modalTitle').innerText = item.name || item.title || 'Transmissão';
+      document.getElementById('modalCategory').innerText = item.category || 'Geral';
+      document.getElementById('modalLogo').src = item.logo_url || item.poster || 'https://via.placeholder.com/48?text=TV';
+
+      // Populate Embed Server Buttons
+      const embeds = item.embeds || [];
+      const serverContainer = document.getElementById('serverContainer');
+      serverContainer.innerHTML = `<span class="text-xs font-medium text-slate-400">Servidores:</span>`;
+
+      if (embeds.length > 0) {
+        embeds.forEach((emb, idx) => {
+          const btn = document.createElement('button');
+          btn.className = `px-3 py-1 rounded text-xs font-semibold transition ${idx === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`;
+          btn.innerText = `${emb.provider || 'Opção ' + (idx + 1)} (${emb.quality || 'HD'})`;
+          btn.onclick = () => selectServer(emb.embed_url, btn);
+          serverContainer.appendChild(btn);
         });
 
-        async function initApp() {
-            renderSkeletons();
-            setupEventListeners();
-            updateFavoritesCount();
-            
-            // Check API Health first
-            await checkApiHealth();
-
-            // Load Data
-            await loadAllData();
-        }
-
-        // Check /health endpoint
-        async function checkApiHealth() {
-            const badgeDot = document.getElementById('api-status-dot');
-            const badgeText = document.getElementById('api-status-text');
-            const mobileText = document.getElementById('api-status-text-mobile');
-            const corsBanner = document.getElementById('cors-warning-banner');
-
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-                const res = await fetch(`${API_BASE_URL}/health`, { 
-                    method: 'GET',
-                    signal: controller.signal 
-                });
-                clearTimeout(timeoutId);
-
-                if (res.ok) {
-                    badgeDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
-                    badgeText.innerText = "API Online";
-                    if(mobileText) mobileText.innerText = "Online";
-                    state.useMock = false;
-                    corsBanner.classList.add('hidden');
-                    updateDataSourceButton();
-                } else {
-                    throw new Error("HTTP Status " + res.status);
-                }
-            } catch (err) {
-                console.warn("API Health Check failed/CORS block:", err);
-                badgeDot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
-                badgeText.innerText = "Modo Simulação (CORS)";
-                if(mobileText) mobileText.innerText = "Simulação";
-                state.useMock = true;
-                corsBanner.classList.remove('hidden');
-                updateDataSourceButton();
-            }
-        }
-
-        function updateDataSourceButton() {
-            const btnText = document.getElementById('data-source-text');
-            if (state.useMock) {
-                btnText.innerText = "Modo Mock (Local)";
-            } else {
-                btnText.innerText = "API Direta";
-            }
-        }
-
-        // Fetch Data Wrapper with Fallback
-        async function fetchApi(endpoint) {
-            if (state.useMock) {
-                return getMockResponse(endpoint);
-            }
-
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-
-                if (!response.ok) throw new Error("Erro na requisição: " + response.status);
-                const json = await response.json();
-                return json;
-            } catch (error) {
-                console.warn(`Fallback acionado para ${endpoint} devido a:`, error.message);
-                state.useMock = true;
-                document.getElementById('cors-warning-banner').classList.remove('hidden');
-                updateDataSourceButton();
-                return getMockResponse(endpoint);
-            }
-        }
-
-        // Mock response router
-        function getMockResponse(endpoint) {
-            if (endpoint.startsWith('/channels/categories')) {
-                return { success: true, data: MOCK_DATA.categories };
-            }
-            if (endpoint.startsWith('/channels')) {
-                return { success: true, data: MOCK_DATA.channels, total: MOCK_DATA.channels.length };
-            }
-            if (endpoint.startsWith('/sports')) {
-                return { success: true, data: MOCK_DATA.sports, total: MOCK_DATA.sports.length };
-            }
-            if (endpoint.startsWith('/search')) {
-                const q = endpoint.split('q=')[1]?.toLowerCase() || '';
-                const filteredChannels = MOCK_DATA.channels.filter(c => c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q));
-                const filteredSports = MOCK_DATA.sports.filter(s => s.title.toLowerCase().includes(q) || s.category.toLowerCase().includes(q));
-                return {
-                    success: true,
-                    data: { channels: filteredChannels, events: filteredSports }
-                };
-            }
-            return { success: false, data: [] };
-        }
-
-        // Load All Data
-        async function loadAllData() {
-            try {
-                // Fetch Categories
-                const catRes = await fetchApi('/channels/categories');
-                if (catRes.success && Array.isArray(catRes.data)) {
-                    state.categories = catRes.data;
-                    renderCategoryPills(catRes.data);
-                }
-
-                // Fetch Channels
-                const chanRes = await fetchApi('/channels');
-                if (chanRes.success && Array.isArray(chanRes.data)) {
-                    state.channels = chanRes.data;
-                }
-
-                // Fetch Sports
-                const sportsRes = await fetchApi('/sports');
-                if (sportsRes.success && Array.isArray(sportsRes.data)) {
-                    state.sports = sportsRes.data;
-                    updateSportsLiveBadge();
-                }
-
-                renderCurrentTab();
-            } catch (e) {
-                console.error("Erro geral ao carregar dados:", e);
-                showToast("Erro ao carregar dados", "error");
-            }
-        }
-
-        function updateSportsLiveBadge() {
-            const liveCount = state.sports.filter(s => s.status === 'live').length;
-            const badge = document.getElementById('sports-live-count');
-            if (liveCount > 0) {
-                badge.innerText = liveCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        // Setup Event Listeners
-        function setupEventListeners() {
-            // Logo / Header Click -> Go to Home
-            document.getElementById('brand-logo-btn').addEventListener('click', goHome);
-
-            // Tabs
-            document.querySelectorAll('.nav-tab').forEach(tabBtn => {
-                tabBtn.addEventListener('click', () => {
-                    document.querySelectorAll('.nav-tab').forEach(b => {
-                        b.classList.remove('active', 'bg-brand-600', 'text-white', 'shadow-md');
-                        b.classList.add('text-slate-400', 'hover:text-slate-200');
-                    });
-                    tabBtn.classList.add('active', 'bg-brand-600', 'text-white', 'shadow-md');
-                    tabBtn.classList.remove('text-slate-400');
-
-                    state.currentTab = tabBtn.dataset.tab;
-                    renderCurrentTab();
-                });
-            });
-
-            // Search Bar Input Debounce
-            const searchInput = document.getElementById('global-search-input');
-            const clearBtn = document.getElementById('clear-search-btn');
-
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-                if (query.length > 0) {
-                    clearBtn.classList.remove('hidden');
-                } else {
-                    clearBtn.classList.add('hidden');
-                }
-
-                clearTimeout(state.searchDebounceTimeout);
-                state.searchDebounceTimeout = setTimeout(() => {
-                    state.searchQuery = query;
-                    handleSearch();
-                }, 400);
-            });
-
-            clearBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                clearBtn.classList.add('hidden');
-                state.searchQuery = '';
-                renderCurrentTab();
-            });
-
-            // Toggle Mock Mode Button
-            document.getElementById('data-source-btn').addEventListener('click', () => {
-                state.useMock = !state.useMock;
-                updateDataSourceButton();
-                showToast(state.useMock ? "Alternado para Modo Local (Mock)" : "Alternado para API Direta", "info");
-                loadAllData();
-            });
-
-            document.getElementById('toggle-mock-mode-btn').addEventListener('click', () => {
-                state.useMock = false;
-                checkApiHealth();
-                loadAllData();
-            });
-
-            // Modal Controls
-            document.getElementById('close-modal-btn').addEventListener('click', closeModal);
-            document.getElementById('back-to-list-btn').addEventListener('click', closeModal);
-            document.getElementById('player-modal').addEventListener('click', (e) => {
-                if (e.target.id === 'player-modal') closeModal();
-            });
-
-            // ESC key to close player / modal
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    closeModal();
-                }
-            });
-
-            // Copy Embed
-            document.getElementById('copy-embed-btn').addEventListener('click', copyEmbedCode);
-        }
-
-        // Return to main screen / reset view
-        function goHome() {
-            closeModal();
-            state.searchQuery = '';
-            document.getElementById('global-search-input').value = '';
-            document.getElementById('clear-search-btn').classList.add('hidden');
-            
-            // Activate Channels Tab
-            state.currentTab = 'channels';
-            state.selectedCategory = 'ALL';
-
-            // Reset tab button UI
-            document.querySelectorAll('.nav-tab').forEach(b => {
-                b.classList.remove('active', 'bg-brand-600', 'text-white', 'shadow-md');
-                b.classList.add('text-slate-400', 'hover:text-slate-200');
-            });
-            const firstTab = document.querySelector('.nav-tab[data-tab="channels"]');
-            if (firstTab) {
-                firstTab.classList.add('active', 'bg-brand-600', 'text-white', 'shadow-md');
-                firstTab.classList.remove('text-slate-400');
-            }
-
-            // Reset category pills UI
-            const catContainer = document.getElementById('category-pills-section');
-            if (catContainer) {
-                catContainer.querySelectorAll('.cat-pill').forEach(b => {
-                    b.classList.remove('active', 'bg-brand-600', 'text-white', 'border-brand-500');
-                    b.classList.add('bg-slate-800/90', 'text-slate-300');
-                });
-                const allPill = catContainer.querySelector('.cat-pill[data-category="ALL"]');
-                if (allPill) {
-                    allPill.classList.add('active', 'bg-brand-600', 'text-white', 'border-brand-500');
-                    allPill.classList.remove('bg-slate-800/90', 'text-slate-300');
-                }
-            }
-
-            renderCurrentTab();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Handle Search Request
-        async function handleSearch() {
-            if (!state.searchQuery) {
-                renderCurrentTab();
-                return;
-            }
-
-            renderSkeletons();
-            const res = await fetchApi(`/search?q=${encodeURIComponent(state.searchQuery)}`);
-            
-            document.getElementById('skeleton-loader').classList.add('hidden');
-            const grid = document.getElementById('content-grid');
-            const sportsContainer = document.getElementById('sports-container');
-            const emptyState = document.getElementById('empty-state');
-            grid.innerHTML = '';
-            
-            sportsContainer.classList.add('hidden');
-            grid.classList.remove('hidden');
-
-            document.getElementById('section-title').innerHTML = `<i class="fa-solid fa-magnifying-glass text-brand-500"></i> Resultados para "${state.searchQuery}"`;
-
-            let items = [];
-            if (res.success && res.data) {
-                const searchChannels = res.data.channels || [];
-                const searchEvents = res.data.events || [];
-                items = [...searchChannels, ...searchEvents];
-            }
-
-            document.getElementById('items-count-badge').innerText = `${items.length} itens encontrados`;
-
-            if (items.length === 0) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-            emptyState.classList.remove('flex');
-
-            items.forEach(item => {
-                // Determine if item is channel or sport event
-                if (item.teams || item.status) {
-                    grid.appendChild(createSportCard(item));
-                } else {
-                    grid.appendChild(createChannelCard(item));
-                }
-        // Helper to get Icon and Style by Category Name
-        function getCategoryMeta(categoryName) {
-            const name = (categoryName || '').toLowerCase();
-            if (name.includes('esporte') || name.includes('futebol')) {
-                return { icon: 'fa-futbol', color: 'text-emerald-400', badgeBg: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' };
-            }
-            if (name.includes('notícia') || name.includes('news') || name.includes('jornal')) {
-                return { icon: 'fa-newspaper', color: 'text-blue-400', badgeBg: 'bg-blue-500/10 border-blue-500/30 text-blue-400' };
-            }
-            if (name.includes('filme') || name.includes('série') || name.includes('cine')) {
-                return { icon: 'fa-film', color: 'text-purple-400', badgeBg: 'bg-purple-500/10 border-purple-500/30 text-purple-400' };
-            }
-            if (name.includes('infantil') || name.includes('kids') || name.includes('desenho')) {
-                return { icon: 'fa-child-reaching', color: 'text-amber-400', badgeBg: 'bg-amber-500/10 border-amber-500/30 text-amber-400' };
-            }
-            if (name.includes('documentári') || name.includes('doc')) {
-                return { icon: 'fa-globe', color: 'text-teal-400', badgeBg: 'bg-teal-500/10 border-teal-500/30 text-teal-400' };
-            }
-            return { icon: 'fa-tv', color: 'text-brand-500', badgeBg: 'bg-brand-500/10 border-brand-500/30 text-brand-400' };
-        }
-
-        // Render Channels Grid Grouped by Category
-        function renderChannelsGrid() {
-            const grid = document.getElementById('content-grid');
-            const emptyState = document.getElementById('empty-state');
-            grid.innerHTML = '';
-            grid.className = 'space-y-8'; // Container format for vertical category rows
-
-            let channelsToRender = state.channels;
-
-            // Filter if specific category selected
-            if (state.selectedCategory !== 'ALL') {
-                channelsToRender = channelsToRender.filter(c => c.category === state.selectedCategory);
-            }
-
-            document.getElementById('items-count-badge').innerText = `${channelsToRender.length} canais disponíveis`;
-
-            if (channelsToRender.length === 0) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-            emptyState.classList.remove('flex');
-
-            // Group channels by Category
-            const grouped = {};
-            channelsToRender.forEach(channel => {
-                const cat = channel.category || 'Geral';
-                if (!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push(channel);
-            });
-
-            // Create a dedicated section for each Category
-            Object.keys(grouped).forEach(category => {
-                const categoryChannels = grouped[category];
-                const meta = getCategoryMeta(category);
-
-                const section = document.createElement('section');
-                section.className = "space-y-3 bg-slate-900/40 p-4 sm:p-5 rounded-2xl border border-slate-800/80";
-
-                // Category Row Header
-                section.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-lg ${meta.badgeBg} border flex items-center justify-center text-sm shadow-sm">
-                                <i class="fa-solid ${meta.icon} ${meta.color}"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
-                                    ${category}
-                                </h3>
-                                <p class="text-[11px] text-slate-400">${categoryChannels.length} ${categoryChannels.length === 1 ? 'canal' : 'canais'} nesta categoria</p>
-                            </div>
-                        </div>
-                        <button class="filter-this-cat-btn text-xs font-semibold text-brand-500 hover:text-brand-400 flex items-center gap-1 transition" data-category="${category}">
-                            Isolar categoria <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </button>
-                    </div>
-                    <div class="category-cards-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-2">
-                        <!-- Channel cards inserted here -->
-                    </div>
-                `;
-
-                const cardsGrid = section.querySelector('.category-cards-grid');
-                categoryChannels.forEach(channel => {
-                    cardsGrid.appendChild(createChannelCard(channel));
-                });
-
-                // Isolating category button handler
-                section.querySelector('.filter-this-cat-btn').addEventListener('click', () => {
-                    const pillContainer = document.getElementById('category-pills-section');
-                    const targetPill = pillContainer.querySelector(`.cat-pill[data-category="${category}"]`);
-                    if (targetPill) {
-                        targetPill.click();
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                });
-
-                grid.appendChild(section);
-            });
-        }
-
-        // Render Favorites Grid
-        function renderFavoritesGrid() {
-            const grid = document.getElementById('content-grid');
-            const emptyState = document.getElementById('empty-state');
-            grid.innerHTML = '';
-            grid.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4';
-
-            const favChannels = state.channels.filter(c => state.favorites.includes(c.id));
-            document.getElementById('items-count-badge').innerText = `${favChannels.length} salvos`;
-
-            if (favChannels.length === 0) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-                emptyState.querySelector('h3').innerText = "Nenhum favorito adicionado";
-                emptyState.querySelector('p').innerText = "Clique no ícone de coração nos cards dos canais para salvar seus canais preferidos aqui.";
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-            emptyState.classList.remove('flex');
-
-            favChannels.forEach(channel => {
-                grid.appendChild(createChannelCard(channel));
-            });
-        }
-
-        // Render Sports View
-        function renderSportsView() {
-            const liveGrid = document.getElementById('sports-live-grid');
-            const upcomingGrid = document.getElementById('sports-upcoming-grid');
-            liveGrid.innerHTML = '';
-            upcomingGrid.innerHTML = '';
-
-            const liveEvents = state.sports.filter(s => s.status === 'live');
-            const upcomingEvents = state.sports.filter(s => s.status !== 'live');
-
-            document.getElementById('items-count-badge').innerText = `${state.sports.length} eventos ao vivo/agendados`;
-
-            if (liveEvents.length === 0) {
-                liveGrid.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">Nenhum evento esportivo ao vivo no momento.</div>`;
-            } else {
-                liveEvents.forEach(event => liveGrid.appendChild(createSportCard(event)));
-            }
-
-            if (upcomingEvents.length === 0) {
-                upcomingGrid.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">Nenhum evento futuro agendado.</div>`;
-            } else {
-                upcomingEvents.forEach(event => upcomingGrid.appendChild(createSportCard(event)));
-            }
-        }
-
-        // Create Channel Card HTML
-        function createChannelCard(channel) {
-            const isFav = state.favorites.includes(channel.id);
-            const currentEPG = channel.epg?.current;
-
-            const card = document.createElement('div');
-            card.className = "group relative bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-brand-500/50 hover:bg-slate-800/80 transition-all duration-300 flex flex-col justify-between shadow-lg hover:shadow-brand-500/10 cursor-pointer";
-
-            card.innerHTML = `
-                <div>
-                    <!-- Header logo & favorite button -->
-                    <div class="flex items-start justify-between gap-3 mb-3">
-                        <div class="w-14 h-14 rounded-xl bg-slate-950 p-2 border border-slate-800 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                            <img src="${channel.logo_url}" alt="${channel.name}" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=TV'">
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700/60">
-                                ${channel.category || 'TV'}
-                            </span>
-                            <button class="fav-btn p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-rose-500 transition" data-id="${channel.id}" title="Favoritar">
-                                <i class="${isFav ? 'fa-solid text-rose-500' : 'fa-regular'} fa-heart text-base"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Channel Info -->
-                    <h3 class="font-bold text-slate-100 text-base group-hover:text-brand-500 transition-colors line-clamp-1 mb-1">
-                        ${channel.name}
-                    </h3>
-                    <p class="text-xs text-slate-400 line-clamp-2 mb-3 leading-relaxed">
-                        ${channel.description || 'Assista à programação ao vivo em alta qualidade.'}
-                    </p>
-                </div>
-
-                <!-- EPG Current Program Badge -->
-                <div class="mt-2 pt-3 border-t border-slate-800/80">
-                    ${currentEPG ? `
-                        <div class="space-y-1">
-                            <div class="flex items-center justify-between text-[11px]">
-                                <span class="text-brand-500 font-semibold flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse"></span> NO AR
-                                </span>
-                                <span class="text-slate-400 text-[10px]">${currentEPG.formatted_time || ''}</span>
-                            </div>
-                            <p class="text-xs text-slate-200 font-medium truncate">${currentEPG.title}</p>
-                        </div>
-                    ` : `
-                        <div class="flex items-center justify-between text-xs text-slate-500">
-                            <span>Transmissão Contínua</span>
-                            <i class="fa-solid fa-play text-[10px]"></i>
-                        </div>
-                    `}
-                </div>
-            `;
-
-            // Card click opens player
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('.fav-btn')) return;
-                openPlayerModal(channel, 'channel');
-            });
-
-            // Favorite button logic
-            const favBtn = card.querySelector('.fav-btn');
-            favBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleFavorite(channel.id);
-                const icon = favBtn.querySelector('i');
-                if (state.favorites.includes(channel.id)) {
-                    icon.className = "fa-solid fa-heart text-rose-500 text-base";
-                    showToast(`${channel.name} adicionado aos favoritos`, "success");
-                } else {
-                    icon.className = "fa-regular fa-heart text-base";
-                    showToast(`${channel.name} removido dos favoritos`, "info");
-                }
-            });
-
-            return card;
-        }
-
-        // Create Sport Event Card HTML
-        function createSportCard(event) {
-            const isLive = event.status === 'live';
-            const homeTeam = event.teams?.home;
-            const awayTeam = event.teams?.away;
-
-            const card = document.createElement('div');
-            card.className = "group bg-slate-900/90 rounded-2xl p-4 border border-slate-800 hover:border-brand-500/50 hover:bg-slate-800/80 transition-all duration-300 flex flex-col justify-between shadow-lg cursor-pointer";
-
-            card.innerHTML = `
-                <div>
-                    <!-- Status Header Badge -->
-                    <div class="flex items-center justify-between gap-2 mb-3">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isLive ? 'bg-brand-accent/20 text-brand-accent border border-brand-accent/40 live-pulse' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">
-                            ${isLive ? '• AO VIVO' : 'EM BREVE'}
-                        </span>
-                        <span class="text-xs text-slate-400 font-medium">
-                            ${event.competition || event.category || 'Esporte'}
-                        </span>
-                    </div>
-
-                    <!-- Event Title -->
-                    <h3 class="font-bold text-slate-100 text-sm group-hover:text-brand-500 transition-colors line-clamp-1 mb-3">
-                        ${event.title}
-                    </h3>
-
-                    <!-- Teams Matchup (if teams available) -->
-                    ${homeTeam && awayTeam ? `
-                        <div class="flex items-center justify-around bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 mb-3">
-                            <div class="flex flex-col items-center gap-1 w-1/3 text-center">
-                                <img src="${homeTeam.logo}" class="w-10 h-10 object-contain" onerror="this.src='https://placehold.co/60x60/1e293b/ffffff?text=TEAM'">
-                                <span class="text-xs font-semibold text-slate-200 truncate w-full">${homeTeam.name}</span>
-                            </div>
-                            <span class="text-xs font-black text-slate-500 uppercase tracking-widest">VS</span>
-                            <div class="flex flex-col items-center gap-1 w-1/3 text-center">
-                                <img src="${awayTeam.logo}" class="w-10 h-10 object-contain" onerror="this.src='https://placehold.co/60x60/1e293b/ffffff?text=TEAM'">
-                                <span class="text-xs font-semibold text-slate-200 truncate w-full">${awayTeam.name}</span>
-                            </div>
-                        </div>
-                    ` : `
-                        <div class="relative w-full h-32 bg-slate-950 rounded-xl overflow-hidden mb-3 border border-slate-800">
-                            <img src="${event.poster}" alt="${event.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=ESPORTE'">
-                        </div>
-                    `}
-                </div>
-
-                <!-- Footer Time Info & Action -->
-                <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                    <span class="flex items-center gap-1 text-[11px]">
-                        <i class="fa-regular fa-calendar-days text-slate-500"></i> ${event.start_time || 'Horário a definir'}
-                    </span>
-                    <span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                        Assistir <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                    </span>
-                </div>
-            `;
-
-            card.addEventListener('click', () => {
-                openPlayerModal(event, 'sport');
-            });
-
-            return card;
-        }
-
-        // Open Player Modal
-        function openPlayerModal(item, type) {
-            state.activeModalItem = item;
-            const modal = document.getElementById('player-modal');
-            const iframe = document.getElementById('video-player-iframe');
-            const loader = document.getElementById('iframe-loader');
-            
-            // Set Header Info
-            document.getElementById('modal-item-title').innerText = item.name || item.title;
-            document.getElementById('modal-item-subtitle').innerText = item.category || item.competition || 'Transmissão Ao Vivo';
-            document.getElementById('modal-item-logo').src = item.logo_url || item.poster || 'https://placehold.co/100x100/1e293b/ffffff?text=TV';
-
-            // Handle Servers / Embeds
-            const embeds = item.embeds || [];
-            const serverContainer = document.getElementById('modal-embed-servers');
-            serverContainer.innerHTML = '';
-
-            if (embeds.length > 0) {
-                embeds.forEach((emb, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = `px-2.5 py-1 rounded text-xs font-semibold transition ${index === 0 ? 'bg-brand-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`;
-                    btn.innerText = emb.provider || `Servidor ${index + 1}`;
-                    btn.addEventListener('click', () => {
-                        serverContainer.querySelectorAll('button').forEach(b => {
-                            b.className = 'px-2.5 py-1 rounded text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
-                        });
-                        btn.className = 'px-2.5 py-1 rounded text-xs font-semibold bg-brand-600 text-white transition';
-                        loadIframeUrl(emb.embed_url);
-                    });
-                    serverContainer.appendChild(btn);
-                });
-
-                // Load initial embed
-                loadIframeUrl(embeds[0].embed_url);
-            } else {
-                serverContainer.innerHTML = `<span class="text-xs text-amber-400">Nenhum servidor direto disponível</span>`;
-                iframe.src = 'about:blank';
-            }
-
-            // EPG Section inside Modal
-            const epgBox = document.getElementById('modal-epg-box');
-            if (item.epg && item.epg.current) {
-                epgBox.classList.remove('hidden');
-                document.getElementById('epg-current-title').innerText = item.epg.current.title || 'Programação Ao Vivo';
-                document.getElementById('epg-current-time').innerText = item.epg.current.formatted_time || '';
-                document.getElementById('epg-current-desc').innerText = item.epg.current.description || 'Sem descrição adicional disponível.';
-
-                // Calculate EPG progress bar
-                const current = item.epg.current;
-                if (current.start_time && current.end_time) {
-                    const now = Math.floor(Date.now() / 1000);
-                    const total = current.end_time - current.start_time;
-                    const elapsed = now - current.start_time;
-                    const pct = Math.min(Math.max(Math.round((elapsed / total) * 100), 0), 100);
-                    document.getElementById('epg-progress-bar').style.width = `${pct}%`;
-                } else {
-                    document.getElementById('epg-progress-bar').style.width = '50%';
-                }
-
-                // Next EPG
-                if (item.epg.next) {
-                    document.getElementById('epg-next-container').classList.remove('hidden');
-                    document.getElementById('epg-next-title').innerText = item.epg.next.title || '--';
-                    document.getElementById('epg-next-time').innerText = item.epg.next.formatted_time || '';
-                } else {
-                    document.getElementById('epg-next-container').classList.add('hidden');
-                }
-            } else {
-                epgBox.classList.add('hidden');
-            }
-
-            // Show Modal
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function loadIframeUrl(url) {
-            const iframe = document.getElementById('video-player-iframe');
-            const loader = document.getElementById('iframe-loader');
-            
-            loader.style.opacity = '1';
-            iframe.src = url;
-
-            iframe.onload = () => {
-                setTimeout(() => {
-                    loader.style.opacity = '0';
-                }, 400);
-            };
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('player-modal');
-            const iframe = document.getElementById('video-player-iframe');
-            iframe.src = '';
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-            state.activeModalItem = null;
-        }
-
-        // Copy Embed Code
-        function copyEmbedCode() {
-            if (!state.activeModalItem || !state.activeModalItem.embeds?.length) {
-                showToast("Nenhum código de embed disponível", "error");
-                return;
-            }
-
-            const currentEmbedUrl = document.getElementById('video-player-iframe').src;
-            const embedHTML = `<iframe src="${currentEmbedUrl}" width="100%" height="480" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>`;
-
-            // Fallback clipboard logic
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = embedHTML;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
-
-            showToast("Código de iframe copiado para a área de transferência!", "success");
-        }
-
-        // Toggle Favorites
-        function toggleFavorite(id) {
-            const index = state.favorites.indexOf(id);
-            if (index > -1) {
-                state.favorites.splice(index, 1);
-            } else {
-                state.favorites.push(id);
-            }
-            localStorage.setItem('rei_favorites', JSON.stringify(state.favorites));
-            updateFavoritesCount();
-
-            if (state.currentTab === 'favorites') {
-                renderFavoritesGrid();
-            }
-        }
-
-        function updateFavoritesCount() {
-            document.getElementById('favorites-count').innerText = state.favorites.length;
-        }
-
-        // Skeleton Loaders
-        function renderSkeletons() {
-            const loader = document.getElementById('skeleton-loader');
-            loader.innerHTML = '';
-            loader.classList.remove('hidden');
-
-            for (let i = 0; i < 8; i++) {
-                const sk = document.createElement('div');
-                sk.className = "bg-slate-900/60 rounded-2xl p-4 border border-slate-800 animate-pulse space-y-3";
-                sk.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="w-12 h-12 bg-slate-800 rounded-xl"></div>
-                        <div class="w-16 h-5 bg-slate-800 rounded-full"></div>
-                    </div>
-                    <div class="h-4 bg-slate-800 rounded w-3/4"></div>
-                    <div class="h-3 bg-slate-800/80 rounded w-full"></div>
-                    <div class="h-3 bg-slate-800/80 rounded w-1/2"></div>
-                `;
-                loader.appendChild(sk);
-            }
-        }
-
-        // Toast Notification System
-        function showToast(message, type = "info") {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-msg');
-            const toastIcon = document.getElementById('toast-icon');
-
-            toastMsg.innerText = message;
-
-            if (type === 'success') {
-                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
-            } else if (type === 'error') {
-                toastIcon.className = "fa-solid fa-circle-xmark text-rose-500 text-base";
-            } else {
-                toastIcon.className = "fa-solid fa-circle-info text-brand-500 text-base";
-            }
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-    </script>
+        // Load First Embed
+        selectServer(embeds[0].embed_url, serverContainer.children[1]);
+      } else {
+        document.getElementById('videoIframe').src = '';
+        serverContainer.innerHTML += `<span class="text-xs text-rose-400">Nenhum embed cadastrado</span>`;
+      }
+
+      // Populate EPG Details in Modal
+      const modalEpg = document.getElementById('modalEpgDetails');
+      if (item.epg?.current) {
+        const cur = item.epg.current;
+        const nxt = item.epg.next;
+        modalEpg.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-indigo-400 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Programa Atual: ${cur.title}
+              </span>
+              <span class="text-[11px] text-slate-400">${cur.formatted_time || ''}</span>
+            </div>
+            <p class="text-xs text-slate-300">${cur.description || 'Sem descrição.'}</p>
+            ${nxt ? `
+              <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400">
+                <strong class="text-slate-300">A seguir:</strong> ${nxt.title} - ${nxt.description || ''}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else if (item.teams) {
+        modalEpg.innerHTML = `
+          <p class="text-xs text-slate-300"><strong>Confronto:</strong> ${item.teams.home?.name} vs ${item.teams.away?.name}</p>
+          <p class="text-xs text-slate-400 mt-1">${item.description || 'Transmissão esportiva ao vivo.'}</p>
+        `;
+      } else {
+        modalEpg.innerHTML = `<p class="text-xs text-slate-500 italic">Sem informações adicionais de programação.</p>`;
+      }
+
+      // Update Modal Favorite Heart
+      updateModalFavBtn();
+
+      // Show Modal
+      document.getElementById('playerModal').classList.remove('hidden');
+    }
+
+    function selectServer(url, btnElement) {
+      state.activeEmbedUrl = url;
+      document.getElementById('videoIframe').src = url;
+
+      // Highlight selected server button
+      const parent = document.getElementById('serverContainer');
+      Array.from(parent.querySelectorAll('button')).forEach(b => {
+        b.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700';
+      });
+      if (btnElement) {
+        btnElement.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-indigo-600 text-white';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('playerModal').classList.add('hidden');
+      document.getElementById('videoIframe').src = ''; // Kill video audio
+      state.currentPlayingItem = null;
+    }
+
+    function handleModalBgClick(e) {
+      if (e.target.id === 'playerModal') {
+        closeModal();
+      }
+    }
+
+    // Favorites Logic
+    function toggleFavorite(id, event) {
+      if (event) event.stopPropagation();
+      const channel = state.channels.find(c => c.id === id);
+      if (!channel) return;
+
+      const idx = state.favorites.findIndex(f => f.id === id);
+      if (idx > -1) {
+        state.favorites.splice(idx, 1);
+      } else {
+        state.favorites.push(channel);
+      }
+
+      localStorage.setItem('rdc_favorites', JSON.stringify(state.favorites));
+      renderView();
+    }
+
+    function toggleCurrentModalFavorite() {
+      if (!state.currentPlayingItem) return;
+      toggleFavorite(state.currentPlayingItem.id);
+      updateModalFavBtn();
+    }
+
+    function updateModalFavBtn() {
+      const btn = document.getElementById('modalFavBtn');
+      if (!state.currentPlayingItem) return;
+      
+      const isFav = state.favorites.some(f => f.id === state.currentPlayingItem.id);
+      if (isFav) {
+        btn.innerHTML = `<i data-lucide="heart" class="w-5 h-5 text-rose-500 fill-rose-500"></i>`;
+      } else {
+        btn.innerHTML = `<i data-lucide="heart" class="w-5 h-5 text-slate-400"></i>`;
+      }
+      lucide.createIcons();
+    }
+
+    function updateFavoriteBadge() {
+      document.getElementById('favCountBadge').innerText = state.favorites.length;
+    }
+
+    // Copy Embed Code to Clipboard
+    function copyEmbedCode() {
+      if (!state.activeEmbedUrl) return;
+      
+      const iframeCode = `<iframe src="${state.activeEmbedUrl}" width="100%" height="480" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>`;
+      
+      navigator.clipboard.writeText(iframeCode).then(() => {
+        const textSpan = document.getElementById('copyEmbedText');
+        textSpan.innerText = "Copiado!";
+        setTimeout(() => { textSpan.innerText = "Copiar Embed"; }, 2000);
+      });
+    }
+
+    // Global Search Handling
+    let searchDebounceTimer;
+    function handleSearch(query) {
+      clearTimeout(searchDebounceTimer);
+      state.searchQuery = query;
+
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (query.trim().length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+        document.getElementById('searchResultsSection').classList.add('hidden');
+        renderView();
+        return;
+      }
+
+      searchDebounceTimer = setTimeout(() => {
+        executeGlobalSearch(query.trim());
+      }, 300);
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      state.searchQuery = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      document.getElementById('searchResultsSection').classList.add('hidden');
+      renderView();
+    }
+
+    async function executeGlobalSearch(q) {
+      const resultsSection = document.getElementById('searchResultsSection');
+      const resultsGrid = document.getElementById('searchResultsGrid');
+      const termSpan = document.getElementById('searchQueryTerm');
+      const countSpan = document.getElementById('searchResultCount');
+
+      termSpan.innerText = q;
+      resultsSection.classList.remove('hidden');
+
+      // Local filter first
+      const lowerQ = q.toLowerCase();
+      const matchedChannels = state.channels.filter(c => 
+        c.name.toLowerCase().includes(lowerQ) || 
+        (c.category && c.category.toLowerCase().includes(lowerQ))
+      );
+      
+      const matchedSports = state.sports.filter(s => 
+        s.title.toLowerCase().includes(lowerQ) || 
+        (s.competition && s.competition.toLowerCase().includes(lowerQ))
+      );
+
+      const totalFound = matchedChannels.length + matchedSports.length;
+      countSpan.innerText = `${totalFound} Encontrados`;
+
+      if (totalFound === 0) {
+        resultsGrid.innerHTML = `
+          <div class="col-span-full py-10 text-center text-slate-500">
+            Nenhum resultado para "${q}".
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      matchedChannels.forEach(ch => {
+        html += createChannelCardHtml(ch);
+      });
+
+      resultsGrid.innerHTML = html;
+      lucide.createIcons();
+    }
+  </script>
 </body>
 </html>
