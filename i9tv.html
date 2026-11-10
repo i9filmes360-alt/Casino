@@ -229,7 +229,7 @@
 
   </main>
 
-  <!-- Player Modal -->
+  <!-- Player Modal com setas no topo -->
   <div id="playerModal" class="fixed inset-0 z-50 hidden bg-black/95 flex items-center justify-center p-2 sm:p-4" onclick="handleModalBgClick(event)">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[98vh]" onclick="event.stopPropagation()">
       
@@ -272,7 +272,7 @@
         </div>
       </div>
 
-      <!-- Player Frame com autoplay ativo -->
+      <!-- Player Frame -->
       <div class="bg-black aspect-video-container relative">
         <iframe 
           id="videoIframe" 
@@ -769,17 +769,8 @@
     }
 
     function selectServer(url, btnElement) {
-      // Garante que a URL forome o autoplay habilitado se suportado pelo provedor
-      let autoUrl = url;
-      if (autoUrl) {
-        if (!autoUrl.includes('autoplay=1')) {
-          autoUrl += (autoUrl.includes('?') ? '&' : '?') + 'autoplay=1';
-        }
-      }
-
-      state.activeEmbedUrl = autoUrl;
-      document.getElementById('videoIframe').src = autoUrl;
-
+      state.activeEmbedUrl = url;
+      document.getElementById('videoIframe').src = url;
       const parent = document.getElementById('serverContainer');
       Array.from(parent.querySelectorAll('button')).forEach(b => {
         if (!b.classList.contains('text-slate-400')) {
