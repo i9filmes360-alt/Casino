@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rei dos Canais - Streaming & EPG</title>
+  <title>i9tv - Streaming & EPG</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -49,40 +49,53 @@
       background: #475569;
     }
     
+    /* FIX DEFINITIVO DE TRAVAMENTO ROBÓTICO FORA DA TELA CHEIA */
     .aspect-video-container {
       position: relative;
-      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      padding-bottom: 56.25%; /* Ratio 16:9 */
       height: 0;
       overflow: hidden;
+      background-color: #000;
+      /* Isolamento absoluto de renderização da GPU */
+      isolation: isolate;
+      contain: strict;
+      transform: translate3d(0, 0, 0);
+      -webkit-transform: translate3d(0, 0, 0);
+      will-change: transform;
     }
+    
     .aspect-video-container iframe {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
+      border: 0;
+      /* Previne recálculo de layout */
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
     }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
   <!-- Header / Navbar -->
-  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800">
+  <header class="sticky top-0 z-40 bg-slate-900 border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16 gap-4">
         
         <!-- Logo -->
         <div class="flex items-center gap-3 cursor-pointer group" onclick="goHome()">
-          <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+          <div class="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
             <i data-lucide="tv" class="w-6 h-6 text-white"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-bold text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-300 bg-clip-text text-transparent">Rei dos Canais</span>
+              <span class="font-bold text-xl tracking-tight text-white">i9tv</span>
               <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-semibold">Web</span>
             </div>
             <p class="text-xs text-slate-400 flex items-center gap-1">
-              <i data-lucide="home" class="w-3 h-3"></i> Clique para voltar ao início
+              <i data-lucide="home" class="w-3 h-3"></i> Voltar ao início
             </p>
           </div>
         </div>
@@ -95,7 +108,7 @@
               type="text" 
               id="searchInput" 
               placeholder="Buscar canais, jogos, futebol, programas..." 
-              class="w-full bg-slate-950/80 border border-slate-800 rounded-full pl-10 pr-10 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+              class="w-full bg-slate-950 border border-slate-800 rounded-full pl-10 pr-10 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
               oninput="handleSearch(this.value)"
             />
             <button id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white" onclick="clearSearch()">
@@ -109,17 +122,16 @@
           <button 
             id="dataSourceToggleBtn"
             onclick="toggleDataSource()"
-            class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-xs font-medium text-slate-300 flex items-center gap-2 transition"
-            title="Alternar entre API direta e Mock Local"
+            class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-medium text-slate-300 flex items-center gap-2 transition"
           >
             <i data-lucide="server" class="w-3.5 h-3.5 text-indigo-400"></i>
-            <span id="dataSourceLabel">API Direta</span>
+            <span id="dataSourceLabel">Modo Seguro</span>
           </button>
 
           <!-- Health Status Badge -->
-          <div id="healthBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/60 text-xs font-medium text-slate-400">
-            <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" id="healthDot"></span>
-            <span id="healthStatusText">Verificando API...</span>
+          <div id="healthBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium text-slate-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-500" id="healthDot"></span>
+            <span id="healthStatusText">Pronto</span>
           </div>
         </div>
 
@@ -140,36 +152,36 @@
     </div>
   </header>
 
-  <!-- Main Navigation Tabs -->
-  <div class="bg-slate-900/50 border-b border-slate-800/80 sticky top-16 z-30 backdrop-blur-md">
+  <!-- Navigation Tabs -->
+  <div class="bg-slate-900 border-b border-slate-800 sticky top-16 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between overflow-x-auto py-2.5 no-scrollbar gap-2">
         <div class="flex items-center space-x-2">
           <button 
             id="tabAllChannels" 
             onclick="switchTab('channels')" 
-            class="px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+            class="px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg"
           >
             <i data-lucide="layout-grid" class="w-4 h-4"></i> Início / Canais
           </button>
           <button 
             id="tabSports" 
             onclick="switchTab('sports')" 
-            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-2"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-2"
           >
             <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i> Esportes Ao Vivo
           </button>
           <button 
             id="tabCategories" 
             onclick="switchTab('categories')" 
-            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-2"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-2"
           >
             <i data-lucide="layers" class="w-4 h-4 text-indigo-400"></i> Categorias
           </button>
           <button 
             id="tabFavorites" 
             onclick="switchTab('favorites')" 
-            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-2"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-2"
           >
             <i data-lucide="heart" class="w-4 h-4 text-rose-500"></i> Favoritos
             <span id="favCountBadge" class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
@@ -177,12 +189,11 @@
         </div>
 
         <button 
-          onclick="fetchData()" 
+          onclick="syncWithRemoteApi()" 
           class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5 text-xs"
-          title="Atualizar dados da API"
         >
           <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="refreshIcon"></i>
-          <span class="hidden sm:inline">Atualizar</span>
+          <span class="hidden sm:inline">Sincronizar API</span>
         </button>
       </div>
     </div>
@@ -193,9 +204,9 @@
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2">
         <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
-        <span id="bannerText">API offline ou bloqueada por CORS. Exibindo dados locais de demonstração.</span>
+        <span id="bannerText">API remota inacessível. Exibindo catálogo local.</span>
       </div>
-      <button onclick="retryConnection()" class="underline font-semibold hover:text-white">Tentar Conectar Novamente</button>
+      <button onclick="syncWithRemoteApi()" class="underline font-semibold hover:text-white">Tentar Novamente</button>
     </div>
   </div>
 
@@ -203,11 +214,9 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
     <!-- Categories Filter Bar -->
-    <div id="categoryFilterContainer" class="mb-6 flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-      <!-- Category pills injected via JS -->
-    </div>
+    <div id="categoryFilterContainer" class="mb-6 flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar"></div>
 
-    <!-- Live Search Results Section (Hidden by default) -->
+    <!-- Live Search Results Section -->
     <div id="searchResultsSection" class="hidden mb-10">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold flex items-center gap-2 text-indigo-400">
@@ -218,33 +227,27 @@
       <div id="searchResultsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
     </div>
 
-    <!-- Main Grid / Views Container -->
-    <div id="mainContainer">
-      <!-- Loaded dynamically -->
-      <div class="flex flex-col items-center justify-center py-20 text-slate-500 gap-3">
-        <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-indigo-500"></i>
-        <p class="text-sm font-medium">Carregando programação de TV e eventos...</p>
-      </div>
-    </div>
+    <!-- Main Views Container -->
+    <div id="mainContainer"></div>
 
   </main>
 
-  <!-- Player Modal -->
-  <div id="playerModal" class="fixed inset-0 z-50 hidden bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6" onclick="handleModalBgClick(event)">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-5xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh] animate-in fade-in zoom-in-95 duration-150" onclick="event.stopPropagation()">
+  <!-- Player Modal Sem Filtros Pesados de GPU -->
+  <div id="playerModal" class="fixed inset-0 z-50 hidden bg-black/95 flex items-center justify-center p-2 sm:p-4" onclick="handleModalBgClick(event)">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[98vh]" onclick="event.stopPropagation()">
       
       <!-- Player Header -->
-      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+      <div class="p-3 sm:p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900">
         <div class="flex items-center gap-3">
-          <button onclick="closeModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition">
+          <button onclick="closeModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow transition">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar aos Canais
           </button>
           <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
-          <div class="flex items-center gap-3">
-            <img id="modalLogo" src="" alt="Logo" class="w-8 h-8 rounded object-cover bg-slate-950 border border-slate-800">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <img id="modalLogo" src="" alt="Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded object-cover bg-slate-950 border border-slate-800">
             <div>
-              <h3 id="modalTitle" class="font-bold text-white text-base leading-tight">--</h3>
-              <p id="modalCategory" class="text-xs text-indigo-400 font-medium">--</p>
+              <h3 id="modalTitle" class="font-bold text-white text-sm sm:text-base leading-tight">--</h3>
+              <p id="modalCategory" class="text-[10px] sm:text-xs text-indigo-400 font-medium">--</p>
             </div>
           </div>
         </div>
@@ -259,30 +262,27 @@
         </div>
       </div>
 
-      <!-- Player Frame -->
-      <div class="bg-black aspect-video-container relative group">
+      <!-- Player Frame Isolado sem Arredondamento para GPU -->
+      <div class="bg-black aspect-video-container relative">
         <iframe 
           id="videoIframe" 
           src="" 
           frameborder="0" 
           allowfullscreen 
-          allow="autoplay; encrypted-media; picture-in-picture"
+          allow="autoplay; encrypted-media; picture-in-picture; accelerometer; gyroscope"
+          scrolling="no"
           class="w-full h-full"
         ></iframe>
       </div>
 
-      <!-- Server & Embed Controls -->
-      <div class="p-4 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        
-        <!-- Server Selectors -->
+      <!-- Controls -->
+      <div class="p-3 sm:p-4 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div class="flex items-center gap-2 flex-wrap" id="serverContainer">
           <span class="text-xs font-medium text-slate-400 flex items-center gap-1">
             <i data-lucide="server" class="w-3.5 h-3.5"></i> Servidor:
           </span>
-          <!-- Dynamic Buttons for Embeds -->
         </div>
 
-        <!-- Copy Embed Code Button -->
         <button 
           onclick="copyEmbedCode()" 
           class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 flex items-center gap-2 transition ml-auto sm:ml-0"
@@ -290,14 +290,11 @@
           <i data-lucide="code" class="w-3.5 h-3.5 text-indigo-400"></i>
           <span id="copyEmbedText">Copiar Embed</span>
         </button>
-
       </div>
 
-      <!-- EPG Details / Match Info inside Modal -->
-      <div class="p-4 bg-slate-950/60 overflow-y-auto max-h-48 border-t border-slate-800/80">
-        <div id="modalEpgDetails">
-          <!-- Populated dynamically -->
-        </div>
+      <!-- EPG / Details -->
+      <div class="p-3 sm:p-4 bg-slate-950/80 overflow-y-auto max-h-36 border-t border-slate-800">
+        <div id="modalEpgDetails"></div>
       </div>
 
     </div>
@@ -310,214 +307,122 @@
         <div class="bg-indigo-600/20 p-1.5 rounded text-indigo-400">
           <i data-lucide="tv" class="w-4 h-4"></i>
         </div>
-        <p>© 2026 Rei dos Canais Web Client. Interface não oficial utilizando API pública.</p>
+        <p>© 2026 i9tv Web Client.</p>
       </div>
       <div class="flex items-center gap-4 text-slate-500">
         <a href="https://api.reidoscanais.my" target="_blank" class="hover:text-slate-300 flex items-center gap-1">
           <i data-lucide="external-link" class="w-3 h-3"></i> Documentação API
         </a>
-        <span class="flex items-center gap-1 text-emerald-400">
-          <i data-lucide="shield-check" class="w-3 h-3"></i> Conexão Segura
-        </span>
       </div>
     </div>
   </footer>
 
-  <!-- Application Logic JS -->
+  <!-- Application Logic -->
   <script>
-    // Configuration & State
     const API_BASE = 'https://api.reidoscanais.my';
-    const FETCH_TIMEOUT_MS = 3500; // 3.5s timeout to prevent stuck screen
-    
-    let state = {
-      activeTab: 'channels', // 'channels', 'sports', 'categories', 'favorites'
-      channels: [],
-      sports: [],
-      categories: [],
-      favorites: JSON.parse(localStorage.getItem('rdc_favorites') || '[]'),
-      selectedCategory: 'all',
-      activeEmbedUrl: '',
-      currentPlayingItem: null,
-      useMockFallback: false,
-      searchQuery: '',
-      isFetching: false
-    };
 
-    // Mock Dataset (Used automatically when API times out or hits CORS restriction)
-    const MOCK_DATA = {
+    const INITIAL_CATALOG = {
       channels: [
         {
           id: "globo",
           name: "Globo SP",
-          description: "Canal aberto com sinal em HD de São Paulo",
+          description: "Sinal aberto HD de São Paulo",
           logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Rede_Globo_logo.svg/300px-Rede_Globo_logo.svg.png",
           category: "Entretenimento",
           embeds: [
-            { provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream?channel=UC" },
-            { provider: "Servidor 2", quality: "SD", embed_url: "https://www.youtube.com/embed/live_stream?channel=UC" }
+            { provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }
           ],
           epg: {
             current: {
               title: "Jornal Nacional",
-              description: "As principais notícias do Brasil e do mundo com apresentação jornalística.",
-              formatted_time: "Das 20:30 às 21:30",
-              start_time: Math.floor(Date.now() / 1000) - 1200,
-              end_time: Math.floor(Date.now() / 1000) + 1800
-            },
-            next: { title: "Novela das 9", description: "Capítulo imperdível de hoje." }
+              description: "Notícias do Brasil e do Mundo.",
+              formatted_time: "20:30 - 21:30"
+            }
           }
         },
         {
           id: "sportv",
           name: "SporTV HD",
-          description: "O melhor do esporte nacional e internacional",
+          description: "O canal campeão",
           logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/SporTV_logo.svg/320px-SporTV_logo.svg.png",
           category: "Esportes",
-          embeds: [{ provider: "Servidor Principal", quality: "FHD", embed_url: "https://www.youtube.com/embed/live_stream" }],
-          epg: {
-            current: {
-              title: "Tá Na Área",
-              description: "Debates e destaques da rodada.",
-              formatted_time: "Das 18:00 às 20:00",
-              start_time: Math.floor(Date.now() / 1000) - 600,
-              end_time: Math.floor(Date.now() / 1000) + 2400
-            }
-          }
+          embeds: [{ provider: "Servidor 1", quality: "FHD", embed_url: "https://www.youtube.com/embed/live_stream" }]
         },
         {
           id: "espn",
           name: "ESPN Brasil",
-          description: "Líder mundial em esportes",
+          description: "Líder em esportes",
           logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/320px-ESPN_wordmark.svg.png",
           category: "Esportes",
-          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
-          epg: {
-            current: {
-              title: "ESPN F360",
-              description: "Informação, análise e debate diário.",
-              formatted_time: "Ao Vivo",
-              start_time: Math.floor(Date.now() / 1000) - 900,
-              end_time: Math.floor(Date.now() / 1000) + 1500
-            }
-          }
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }]
         },
         {
-          id: "gnc",
+          id: "globonews",
           name: "GloboNews",
-          description: "Nunca desliga, Notícias 24 horas",
+          description: "Jornalismo 24h",
           logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/GloboNews_2010.svg/320px-GloboNews_2010.svg.png",
           category: "Notícias",
-          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
-          epg: {
-            current: {
-              title: "Edição das 18h",
-              description: "Análises de política e economia.",
-              formatted_time: "18:00 - 20:00",
-              start_time: Math.floor(Date.now() / 1000) - 300,
-              end_time: Math.floor(Date.now() / 1000) + 3300
-            }
-          }
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }]
         },
         {
           id: "megapix",
           name: "Megapix",
-          description: "Os melhores filmes dublados",
+          description: "Grandes sucessos do cinema",
           logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Megapix_logo.svg/320px-Megapix_logo.svg.png",
           category: "Filmes e Séries",
-          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
-          epg: {
-            current: {
-              title: "Velozes e Furiosos 9",
-              description: "Ação e adrenalina sem limites.",
-              formatted_time: "19:30 - 21:40",
-              start_time: Math.floor(Date.now() / 1000) - 1800,
-              end_time: Math.floor(Date.now() / 1000) + 3600
-            }
-          }
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }]
         },
         {
           id: "cartoon",
           name: "Cartoon Network",
-          description: "Animações e desenhos para todas as idades",
+          description: "Animação 24h",
           logo_url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Cartoon_Network_2010_logo.svg/320px-Cartoon_Network_2010_logo.svg.png",
           category: "Infantil",
-          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }],
-          epg: {
-            current: {
-              title: "O Incrível Mundo de Gumball",
-              description: "Episódios em sequência.",
-              formatted_time: "Em exibição",
-              start_time: Math.floor(Date.now() / 1000) - 300,
-              end_time: Math.floor(Date.now() / 1000) + 900
-            }
-          }
+          embeds: [{ provider: "Servidor 1", quality: "HD", embed_url: "https://www.youtube.com/embed/live_stream" }]
         }
       ],
       sports: [
         {
           id: "fla-x-pal-2026",
           title: "Flamengo x Palmeiras",
-          description: "Grande confronto decisivo pelo Campeonato Brasileiro 2026",
+          description: "Campeonato Brasileiro 2026",
           category: "Futebol",
           competition: "Brasileirão Série A",
           teams: {
             home: { name: "Flamengo", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Flamengo_braz_logo.svg" },
             away: { name: "Palmeiras", logo: "https://upload.wikimedia.org/wikipedia/commons/1/10/Palmeiras_logo.svg" }
           },
-          start_time: "Hoje às 21:30",
+          start_time: "Ao Vivo",
           status: "live",
-          popular: true,
           embeds: [{ provider: "Premiere HD", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream" }]
-        },
-        {
-          id: "real-x-barca-2026",
-          title: "Real Madrid x Barcelona",
-          description: "El Clásico da La Liga espanhola",
-          category: "Futebol",
-          competition: "La Liga",
-          teams: {
-            home: { name: "Real Madrid", logo: "https://upload.wikimedia.org/wikipedia/pt/9/98/Real_Madrid.png" },
-            away: { name: "Barcelona", logo: "https://upload.wikimedia.org/wikipedia/pt/4/43/FCBarcelona.png" }
-          },
-          start_time: "Amanhã às 16:00",
-          status: "upcoming",
-          popular: true,
-          embeds: [{ provider: "ESPN HD", quality: "1080p", embed_url: "https://www.youtube.com/embed/live_stream" }]
         }
       ]
     };
 
-    // Helper for Fetching with strict timeout
-    async function fetchWithTimeout(resource, options = {}) {
-      const { timeout = FETCH_TIMEOUT_MS } = options;
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeout);
-      
-      try {
-        const response = await fetch(resource, {
-          ...options,
-          signal: controller.signal
-        });
-        clearTimeout(id);
-        return response;
-      } catch (error) {
-        clearTimeout(id);
-        throw error;
-      }
-    }
+    let state = {
+      activeTab: 'channels',
+      channels: [...INITIAL_CATALOG.channels],
+      sports: [...INITIAL_CATALOG.sports],
+      categories: [],
+      favorites: JSON.parse(localStorage.getItem('rdc_favorites') || '[]'),
+      selectedCategory: 'all',
+      activeEmbedUrl: '',
+      currentPlayingItem: null,
+      searchQuery: ''
+    };
 
-    // App Initialization
     document.addEventListener('DOMContentLoaded', () => {
+      extractCategories();
+      renderView();
       lucide.createIcons();
-      fetchData();
-      
-      // Global Escape listener to close modals
+
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeModal();
       });
+
+      setTimeout(syncWithRemoteApi, 1000);
     });
 
-    // Reset view to Home
     function goHome() {
       clearSearch();
       state.selectedCategory = 'all';
@@ -525,107 +430,37 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Fetch Health & Data
-    async function fetchData() {
-      setLoadingState(true);
-      
-      if (state.useMockFallback) {
-        loadMockData("Modo de Dados Locais Ativo.");
-        return;
-      }
+    async function syncWithRemoteApi() {
+      const icon = document.getElementById('refreshIcon');
+      if (icon) icon.classList.add('animate-spin');
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
 
       try {
-        // Check API Health
-        const healthRes = await fetchWithTimeout(`${API_BASE}/health`, { timeout: 2000 });
-        if (healthRes.ok) {
-          updateHealthBadge(true, "API Online");
-          hideConnectionBanner();
-        } else {
-          throw new Error("API retornou código não saudável");
-        }
-
-        // Fetch Channels and Sports in parallel
-        const [channelsRes, sportsRes] = await Promise.all([
-          fetchWithTimeout(`${API_BASE}/channels`),
-          fetchWithTimeout(`${API_BASE}/sports`)
-        ]);
-
-        const channelsData = await channelsRes.json();
-        const sportsData = await sportsRes.json();
-
-        state.channels = channelsData.data || [];
-        state.sports = sportsData.data || [];
+        const res = await fetch(`${API_BASE}/channels`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         
-        extractCategories();
-        renderView();
-
-      } catch (err) {
-        console.warn("Falha na comunicação direta com a API Rei dos Canais:", err);
-        updateHealthBadge(false, "API Inacessível (CORS/Offline)");
-        showConnectionBanner("API indisponível ou bloqueada pelo navegador. Usando dados locais de fallback.");
-        loadMockData();
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && json.data.length > 0) {
+            state.channels = json.data;
+            extractCategories();
+            renderView();
+            document.getElementById('healthStatusText').innerText = "API Conectada";
+            document.getElementById('connectionBanner').classList.add('hidden');
+          }
+        }
+      } catch (e) {
+        document.getElementById('healthStatusText').innerText = "Modo Offline/Local";
+        document.getElementById('connectionBanner').classList.remove('hidden');
       } finally {
-        setLoadingState(false);
+        if (icon) icon.classList.remove('animate-spin');
       }
-    }
-
-    function loadMockData(reason) {
-      state.channels = MOCK_DATA.channels;
-      state.sports = MOCK_DATA.sports;
-      extractCategories();
-      renderView();
-      setLoadingState(false);
-    }
-
-    function retryConnection() {
-      state.useMockFallback = false;
-      document.getElementById('dataSourceLabel').innerText = "API Direta";
-      fetchData();
     }
 
     function toggleDataSource() {
-      state.useMockFallback = !state.useMockFallback;
-      const label = document.getElementById('dataSourceLabel');
-      if (state.useMockFallback) {
-        label.innerText = "Mock Local";
-        showConnectionBanner("Modo Mock ativado manualmente.");
-      } else {
-        label.innerText = "API Direta";
-        hideConnectionBanner();
-      }
-      fetchData();
-    }
-
-    function updateHealthBadge(isOnline, text) {
-      const dot = document.getElementById('healthDot');
-      const label = document.getElementById('healthStatusText');
-      
-      label.innerText = text;
-      if (isOnline) {
-        dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-      } else {
-        dot.className = "w-2 h-2 rounded-full bg-amber-500";
-      }
-    }
-
-    function showConnectionBanner(msg) {
-      const banner = document.getElementById('connectionBanner');
-      const text = document.getElementById('bannerText');
-      text.innerText = msg;
-      banner.classList.remove('hidden');
-    }
-
-    function hideConnectionBanner() {
-      document.getElementById('connectionBanner').classList.add('hidden');
-    }
-
-    function setLoadingState(isLoading) {
-      const icon = document.getElementById('refreshIcon');
-      if (isLoading) {
-        icon.classList.add('animate-spin');
-      } else {
-        icon.classList.remove('animate-spin');
-      }
+      syncWithRemoteApi();
     }
 
     function extractCategories() {
@@ -636,7 +471,6 @@
       renderCategoryPills();
     }
 
-    // Render Category Filter Pills
     function renderCategoryPills() {
       const container = document.getElementById('categoryFilterContainer');
       if (state.activeTab === 'sports') {
@@ -677,42 +511,36 @@
 
     function switchTab(tab) {
       state.activeTab = tab;
-      
-      // Update Tab UI
       const tabs = ['channels', 'sports', 'categories', 'favorites'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
         if (!btn) return;
         if (t === tab) {
-          btn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20";
+          btn.className = "px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg";
         } else {
-          btn.className = "px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition flex items-center gap-2";
+          btn.className = "px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition flex items-center gap-2";
         }
       });
-
       renderCategoryPills();
       renderView();
     }
 
-    // Category Icon Helpers
     function getCategoryIcon(cat) {
       const c = cat.toLowerCase();
       if (c.includes('esporte') || c.includes('futebol')) return '⚽';
       if (c.includes('notícia') || c.includes('jornal')) return '📰';
       if (c.includes('filme') || c.includes('série')) return '🎬';
       if (c.includes('infantil') || c.includes('desenho')) return '🎨';
-      if (c.includes('variedade') || c.includes('entretenimento')) return '🎭';
       return '📺';
     }
 
-    // Main View Dispatcher
     function renderView() {
       const container = document.getElementById('mainContainer');
       updateFavoriteBadge();
 
       if (state.searchQuery.trim().length > 0) {
         container.innerHTML = '';
-        return; // Handled by search section
+        return;
       }
 
       if (state.activeTab === 'channels') {
@@ -724,30 +552,15 @@
       } else if (state.activeTab === 'favorites') {
         renderFavoritesView(container);
       }
-
       lucide.createIcons();
     }
 
-    // Render Channels Grouped by Category
     function renderChannelsGroupedView(container) {
       let filteredChannels = state.channels;
-      
       if (state.selectedCategory !== 'all') {
         filteredChannels = state.channels.filter(c => c.category === state.selectedCategory);
       }
 
-      if (filteredChannels.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl">
-            <i data-lucide="tv-2" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
-            <h3 class="text-lg font-bold text-slate-300">Nenhum canal encontrado</h3>
-            <p class="text-xs text-slate-500 mt-1">Tente selecionar outra categoria ou buscar na barra superior.</p>
-          </div>
-        `;
-        return;
-      }
-
-      // Group Channels by Category
       const grouped = {};
       filteredChannels.forEach(ch => {
         const cat = ch.category || 'Outros';
@@ -756,17 +569,14 @@
       });
 
       let html = `<div class="space-y-8">`;
-
       for (const [categoryName, channelsList] of Object.entries(grouped)) {
         html += `
           <section class="space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
               <div class="flex items-center gap-2">
                 <span class="text-lg">${getCategoryIcon(categoryName)}</span>
                 <h2 class="text-lg font-bold text-white tracking-tight">${categoryName}</h2>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-indigo-400 font-bold border border-slate-700/60">
-                  ${channelsList.length}
-                </span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-indigo-400 font-bold border border-slate-700">${channelsList.length}</span>
               </div>
               ${state.selectedCategory === 'all' ? `
                 <button onclick="filterCategory('${categoryName}')" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1">
@@ -774,242 +584,116 @@
                 </button>
               ` : ''}
             </div>
-
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               ${channelsList.map(ch => createChannelCardHtml(ch)).join('')}
             </div>
           </section>
         `;
       }
-
       html += `</div>`;
       container.innerHTML = html;
     }
 
-    // HTML Generator for Channel Card
     function createChannelCardHtml(channel) {
       const isFav = state.favorites.some(f => f.id === channel.id);
       const epg = channel.epg?.current;
-      
-      // Calculate EPG progress percentage if available
-      let progressPercent = 0;
-      if (epg && epg.start_time && epg.end_time) {
-        const now = Math.floor(Date.now() / 1000);
-        const total = epg.end_time - epg.start_time;
-        const current = now - epg.start_time;
-        if (total > 0) {
-          progressPercent = Math.max(0, Math.min(100, Math.round((current / total) * 100)));
-        }
-      }
 
       return `
-        <div class="bg-slate-900 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5 flex flex-col justify-between group relative">
+        <div class="bg-slate-900 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-4 transition-all duration-200 hover:shadow-xl flex flex-col justify-between group relative">
           <div>
-            <!-- Top bar card -->
             <div class="flex items-start justify-between gap-3 mb-3">
               <div class="flex items-center gap-3">
-                <img 
-                  src="${channel.logo_url || 'https://via.placeholder.com/48'}" 
-                  alt="${channel.name}"
-                  class="w-10 h-10 rounded-lg object-contain bg-slate-950 p-1 border border-slate-800"
-                  onerror="this.src='https://via.placeholder.com/48?text=TV'"
-                >
+                <img src="${channel.logo_url || 'https://via.placeholder.com/48'}" alt="${channel.name}" class="w-10 h-10 rounded-lg object-contain bg-slate-950 p-1 border border-slate-800" onerror="this.src='https://via.placeholder.com/48?text=TV'">
                 <div>
                   <h3 class="font-bold text-white text-sm group-hover:text-indigo-400 transition-colors line-clamp-1">${channel.name}</h3>
                   <span class="text-[10px] text-slate-400 font-medium">${channel.category || 'Geral'}</span>
                 </div>
               </div>
-
-              <button 
-                onclick="toggleFavorite('${channel.id}', event)" 
-                class="text-slate-600 hover:text-rose-500 transition p-1"
-                title="Favoritar"
-              >
+              <button onclick="toggleFavorite('${channel.id}', event)" class="text-slate-600 hover:text-rose-500 transition p-1">
                 <i data-lucide="heart" class="w-4 h-4 ${isFav ? 'text-rose-500 fill-rose-500' : ''}"></i>
               </button>
             </div>
-
-            <!-- EPG Banner -->
             ${epg ? `
-              <div class="bg-slate-950/80 rounded-lg p-2.5 border border-slate-800/80 mb-3 space-y-1">
+              <div class="bg-slate-950 rounded-lg p-2.5 border border-slate-800 mb-3 space-y-1">
                 <div class="flex items-center justify-between text-[11px]">
                   <span class="text-indigo-300 font-semibold truncate flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> ${epg.title || 'No Ar'}
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ${epg.title || 'No Ar'}
                   </span>
                   <span class="text-slate-500 text-[10px]">${epg.formatted_time || ''}</span>
                 </div>
                 ${epg.description ? `<p class="text-[10px] text-slate-400 line-clamp-1">${epg.description}</p>` : ''}
-                
-                ${progressPercent > 0 ? `
-                  <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden mt-1.5">
-                    <div class="bg-indigo-500 h-full rounded-full" style="width: ${progressPercent}%"></div>
-                  </div>
-                ` : ''}
               </div>
-            ` : `
-              <p class="text-[11px] text-slate-500 italic mb-3">Sem guia EPG disponível no momento</p>
-            `}
+            ` : `<p class="text-[11px] text-slate-500 italic mb-3">Sinal Online</p>`}
           </div>
-
-          <!-- Action Button -->
-          <button 
-            onclick="openPlayerModal('channel', '${channel.id}')"
-            class="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white text-xs font-bold transition flex items-center justify-center gap-2 group-hover:shadow-md"
-          >
+          <button onclick="openPlayerModal('channel', '${channel.id}')" class="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white text-xs font-bold transition flex items-center justify-center gap-2">
             <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> Assistir Agora
           </button>
         </div>
       `;
     }
 
-    // Render Sports View
     function renderSportsView(container) {
-      if (state.sports.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl">
-            <i data-lucide="trophy" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
-            <h3 class="text-lg font-bold text-slate-300">Nenhum evento esportivo encontrado</h3>
-            <p class="text-xs text-slate-500 mt-1">Verifique mais tarde para transmissões ao vivo de futebol e lutas.</p>
-          </div>
-        `;
-        return;
-      }
-
-      let html = `
+      container.innerHTML = `
         <div class="space-y-4">
-          <div class="flex items-center justify-between mb-2">
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <i data-lucide="activity" class="w-5 h-5 text-amber-400"></i> Transmissões Esportivas Ao Vivo & Programadas
-            </h2>
-            <span class="text-xs text-slate-400 font-semibold">${state.sports.length} Eventos</span>
-          </div>
-
+          <h2 class="text-lg font-bold text-white flex items-center gap-2"><i data-lucide="activity" class="w-5 h-5 text-amber-400"></i> Esportes Ao Vivo</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            ${state.sports.map(sport => {
-              const isLive = sport.status === 'live';
-              return `
-                <div class="bg-slate-900 border ${isLive ? 'border-amber-500/40' : 'border-slate-800'} rounded-xl p-4 transition hover:border-amber-500/70 flex flex-col justify-between space-y-4">
-                  <div class="flex items-center justify-between">
-                    <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${isLive ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800 text-slate-400'}">
-                      ${isLive ? '● AO VIVO AGORA' : sport.start_time || 'Em Breve'}
-                    </span>
-                    <span class="text-xs text-amber-400 font-semibold flex items-center gap-1">
-                      <i data-lucide="shield" class="w-3.5 h-3.5"></i> ${sport.competition || sport.category || 'Esporte'}
-                    </span>
-                  </div>
-
-                  <!-- Teams / Title -->
-                  <div class="py-2">
-                    ${sport.teams ? `
-                      <div class="flex items-center justify-between gap-4 px-2">
-                        <div class="flex flex-col items-center text-center flex-1">
-                          <img src="${sport.teams.home?.logo || ''}" class="w-12 h-12 object-contain mb-1" onerror="this.src='https://via.placeholder.com/48?text=Time'">
-                          <span class="font-bold text-xs text-white">${sport.teams.home?.name || 'Casa'}</span>
-                        </div>
-                        <span class="text-slate-600 font-extrabold text-sm">VS</span>
-                        <div class="flex flex-col items-center text-center flex-1">
-                          <img src="${sport.teams.away?.logo || ''}" class="w-12 h-12 object-contain mb-1" onerror="this.src='https://via.placeholder.com/48?text=Time'">
-                          <span class="font-bold text-xs text-white">${sport.teams.away?.name || 'Fora'}</span>
-                        </div>
-                      </div>
-                    ` : `
-                      <h3 class="font-bold text-base text-white">${sport.title}</h3>
-                      <p class="text-xs text-slate-400 mt-1">${sport.description || ''}</p>
-                    `}
-                  </div>
-
-                  <button 
-                    onclick="openPlayerModal('sport', '${sport.id}')"
-                    class="w-full py-2 rounded-lg ${isLive ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-800 hover:bg-slate-700 text-slate-200'} text-xs font-bold transition flex items-center justify-center gap-2"
-                  >
-                    <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> ${isLive ? 'Assistir Transmissão' : 'Ver Detalhes do Evento'}
-                  </button>
+            ${state.sports.map(sport => `
+              <div class="bg-slate-900 border border-amber-500/40 rounded-xl p-4 flex flex-col justify-between space-y-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">● AO VIVO</span>
+                  <span class="text-xs text-amber-400 font-semibold">${sport.competition || 'Futebol'}</span>
                 </div>
-              `;
-            }).join('')}
+                <h3 class="font-bold text-white text-sm">${sport.title}</h3>
+                <button onclick="openPlayerModal('sport', '${sport.id}')" class="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition flex items-center justify-center gap-2">
+                  <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i> Assistir Transmissão
+                </button>
+              </div>
+            `).join('')}
           </div>
         </div>
       `;
-
-      container.innerHTML = html;
     }
 
-    // Render Categories Overview
     function renderCategoriesSummaryView(container) {
-      let html = `
+      container.innerHTML = `
         <div class="space-y-6">
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <i data-lucide="layers" class="w-5 h-5 text-indigo-400"></i> Explorar por Categoria
-          </h2>
-
+          <h2 class="text-lg font-bold text-white">Categorias</h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            ${state.categories.map(cat => {
-              const count = state.channels.filter(c => c.category === cat).length;
-              return `
-                <div 
-                  onclick="filterCategory('${cat}'); switchTab('channels');"
-                  class="bg-slate-900 border border-slate-800 hover:border-indigo-500 rounded-xl p-5 cursor-pointer transition hover:scale-105 flex flex-col items-center text-center group"
-                >
-                  <span class="text-3xl mb-2">${getCategoryIcon(cat)}</span>
-                  <h3 class="font-bold text-sm text-white group-hover:text-indigo-400 transition">${cat}</h3>
-                  <span class="text-xs text-slate-500 mt-1 font-medium">${count} canais</span>
-                </div>
-              `;
-            }).join('')}
+            ${state.categories.map(cat => `
+              <div onclick="filterCategory('${cat}'); switchTab('channels');" class="bg-slate-900 border border-slate-800 rounded-xl p-5 cursor-pointer hover:border-indigo-500 transition flex flex-col items-center text-center">
+                <span class="text-3xl mb-2">${getCategoryIcon(cat)}</span>
+                <h3 class="font-bold text-sm text-white">${cat}</h3>
+              </div>
+            `).join('')}
           </div>
         </div>
       `;
-
-      container.innerHTML = html;
     }
 
-    // Render Favorites View
     function renderFavoritesView(container) {
       if (state.favorites.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl">
-            <i data-lucide="heart-off" class="w-12 h-12 text-slate-600 mx-auto mb-3"></i>
-            <h3 class="text-lg font-bold text-slate-300">Você ainda não possui favoritos</h3>
-            <p class="text-xs text-slate-500 mt-1">Clique no ícone de coração nos canais para salvar aqui.</p>
-          </div>
-        `;
+        container.innerHTML = `<div class="text-center py-16 bg-slate-900/40 border border-slate-800 rounded-2xl"><h3 class="text-lg font-bold text-slate-300">Sem favoritos salvos</h3></div>`;
         return;
       }
-
-      let html = `
+      container.innerHTML = `
         <div class="space-y-4">
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <i data-lucide="heart" class="w-5 h-5 text-rose-500"></i> Meus Canais Favoritos (${state.favorites.length})
-          </h2>
-
+          <h2 class="text-lg font-bold text-white">Favoritos</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             ${state.favorites.map(ch => createChannelCardHtml(ch)).join('')}
           </div>
         </div>
       `;
-
-      container.innerHTML = html;
     }
 
-    // Modal Player Logic
     function openPlayerModal(type, itemId) {
-      let item = null;
-      if (type === 'channel') {
-        item = state.channels.find(c => c.id === itemId);
-      } else {
-        item = state.sports.find(s => s.id === itemId);
-      }
-
+      const item = type === 'channel' ? state.channels.find(c => c.id === itemId) : state.sports.find(s => s.id === itemId);
       if (!item) return;
 
       state.currentPlayingItem = item;
-
-      // Populate Header
       document.getElementById('modalTitle').innerText = item.name || item.title || 'Transmissão';
       document.getElementById('modalCategory').innerText = item.category || 'Geral';
       document.getElementById('modalLogo').src = item.logo_url || item.poster || 'https://via.placeholder.com/48?text=TV';
 
-      // Populate Embed Server Buttons
       const embeds = item.embeds || [];
       const serverContainer = document.getElementById('serverContainer');
       serverContainer.innerHTML = `<span class="text-xs font-medium text-slate-400">Servidores:</span>`;
@@ -1017,95 +701,44 @@
       if (embeds.length > 0) {
         embeds.forEach((emb, idx) => {
           const btn = document.createElement('button');
-          btn.className = `px-3 py-1 rounded text-xs font-semibold transition ${idx === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`;
-          btn.innerText = `${emb.provider || 'Opção ' + (idx + 1)} (${emb.quality || 'HD'})`;
+          btn.className = `px-3 py-1 rounded text-xs font-semibold transition ${idx === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'}`;
+          btn.innerText = `${emb.provider || 'Servidor ' + (idx + 1)}`;
           btn.onclick = () => selectServer(emb.embed_url, btn);
           serverContainer.appendChild(btn);
         });
-
-        // Load First Embed
         selectServer(embeds[0].embed_url, serverContainer.children[1]);
-      } else {
-        document.getElementById('videoIframe').src = '';
-        serverContainer.innerHTML += `<span class="text-xs text-rose-400">Nenhum embed cadastrado</span>`;
       }
 
-      // Populate EPG Details in Modal
-      const modalEpg = document.getElementById('modalEpgDetails');
-      if (item.epg?.current) {
-        const cur = item.epg.current;
-        const nxt = item.epg.next;
-        modalEpg.innerHTML = `
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-indigo-400 flex items-center gap-1">
-                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Programa Atual: ${cur.title}
-              </span>
-              <span class="text-[11px] text-slate-400">${cur.formatted_time || ''}</span>
-            </div>
-            <p class="text-xs text-slate-300">${cur.description || 'Sem descrição.'}</p>
-            ${nxt ? `
-              <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400">
-                <strong class="text-slate-300">A seguir:</strong> ${nxt.title} - ${nxt.description || ''}
-              </div>
-            ` : ''}
-          </div>
-        `;
-      } else if (item.teams) {
-        modalEpg.innerHTML = `
-          <p class="text-xs text-slate-300"><strong>Confronto:</strong> ${item.teams.home?.name} vs ${item.teams.away?.name}</p>
-          <p class="text-xs text-slate-400 mt-1">${item.description || 'Transmissão esportiva ao vivo.'}</p>
-        `;
-      } else {
-        modalEpg.innerHTML = `<p class="text-xs text-slate-500 italic">Sem informações adicionais de programação.</p>`;
-      }
-
-      // Update Modal Favorite Heart
-      updateModalFavBtn();
-
-      // Show Modal
       document.getElementById('playerModal').classList.remove('hidden');
     }
 
     function selectServer(url, btnElement) {
       state.activeEmbedUrl = url;
       document.getElementById('videoIframe').src = url;
-
-      // Highlight selected server button
       const parent = document.getElementById('serverContainer');
       Array.from(parent.querySelectorAll('button')).forEach(b => {
-        b.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700';
+        b.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-slate-800 text-slate-300';
       });
-      if (btnElement) {
-        btnElement.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-indigo-600 text-white';
-      }
+      if (btnElement) btnElement.className = 'px-3 py-1 rounded text-xs font-semibold transition bg-indigo-600 text-white';
     }
 
     function closeModal() {
       document.getElementById('playerModal').classList.add('hidden');
-      document.getElementById('videoIframe').src = ''; // Kill video audio
+      document.getElementById('videoIframe').src = '';
       state.currentPlayingItem = null;
     }
 
     function handleModalBgClick(e) {
-      if (e.target.id === 'playerModal') {
-        closeModal();
-      }
+      if (e.target.id === 'playerModal') closeModal();
     }
 
-    // Favorites Logic
     function toggleFavorite(id, event) {
       if (event) event.stopPropagation();
       const channel = state.channels.find(c => c.id === id);
       if (!channel) return;
-
       const idx = state.favorites.findIndex(f => f.id === id);
-      if (idx > -1) {
-        state.favorites.splice(idx, 1);
-      } else {
-        state.favorites.push(channel);
-      }
-
+      if (idx > -1) state.favorites.splice(idx, 1);
+      else state.favorites.push(channel);
       localStorage.setItem('rdc_favorites', JSON.stringify(state.favorites));
       renderView();
     }
@@ -1113,32 +746,15 @@
     function toggleCurrentModalFavorite() {
       if (!state.currentPlayingItem) return;
       toggleFavorite(state.currentPlayingItem.id);
-      updateModalFavBtn();
-    }
-
-    function updateModalFavBtn() {
-      const btn = document.getElementById('modalFavBtn');
-      if (!state.currentPlayingItem) return;
-      
-      const isFav = state.favorites.some(f => f.id === state.currentPlayingItem.id);
-      if (isFav) {
-        btn.innerHTML = `<i data-lucide="heart" class="w-5 h-5 text-rose-500 fill-rose-500"></i>`;
-      } else {
-        btn.innerHTML = `<i data-lucide="heart" class="w-5 h-5 text-slate-400"></i>`;
-      }
-      lucide.createIcons();
     }
 
     function updateFavoriteBadge() {
       document.getElementById('favCountBadge').innerText = state.favorites.length;
     }
 
-    // Copy Embed Code to Clipboard
     function copyEmbedCode() {
       if (!state.activeEmbedUrl) return;
-      
       const iframeCode = `<iframe src="${state.activeEmbedUrl}" width="100%" height="480" frameborder="0" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>`;
-      
       navigator.clipboard.writeText(iframeCode).then(() => {
         const textSpan = document.getElementById('copyEmbedText');
         textSpan.innerText = "Copiado!";
@@ -1146,25 +762,19 @@
       });
     }
 
-    // Global Search Handling
     let searchDebounceTimer;
     function handleSearch(query) {
       clearTimeout(searchDebounceTimer);
       state.searchQuery = query;
-
       const clearBtn = document.getElementById('clearSearchBtn');
-      if (query.trim().length > 0) {
-        clearBtn.classList.remove('hidden');
-      } else {
+      if (query.trim().length > 0) clearBtn.classList.remove('hidden');
+      else {
         clearBtn.classList.add('hidden');
         document.getElementById('searchResultsSection').classList.add('hidden');
         renderView();
         return;
       }
-
-      searchDebounceTimer = setTimeout(() => {
-        executeGlobalSearch(query.trim());
-      }, 300);
+      searchDebounceTimer = setTimeout(() => executeGlobalSearch(query.trim()), 300);
     }
 
     function clearSearch() {
@@ -1175,45 +785,19 @@
       renderView();
     }
 
-    async function executeGlobalSearch(q) {
+    function executeGlobalSearch(q) {
       const resultsSection = document.getElementById('searchResultsSection');
       const resultsGrid = document.getElementById('searchResultsGrid');
-      const termSpan = document.getElementById('searchQueryTerm');
-      const countSpan = document.getElementById('searchResultCount');
-
-      termSpan.innerText = q;
+      document.getElementById('searchQueryTerm').innerText = q;
       resultsSection.classList.remove('hidden');
 
-      // Local filter first
       const lowerQ = q.toLowerCase();
-      const matchedChannels = state.channels.filter(c => 
-        c.name.toLowerCase().includes(lowerQ) || 
-        (c.category && c.category.toLowerCase().includes(lowerQ))
-      );
-      
-      const matchedSports = state.sports.filter(s => 
-        s.title.toLowerCase().includes(lowerQ) || 
-        (s.competition && s.competition.toLowerCase().includes(lowerQ))
-      );
+      const matchedChannels = state.channels.filter(c => c.name.toLowerCase().includes(lowerQ));
+      document.getElementById('searchResultCount').innerText = `${matchedChannels.length} Encontrados`;
 
-      const totalFound = matchedChannels.length + matchedSports.length;
-      countSpan.innerText = `${totalFound} Encontrados`;
-
-      if (totalFound === 0) {
-        resultsGrid.innerHTML = `
-          <div class="col-span-full py-10 text-center text-slate-500">
-            Nenhum resultado para "${q}".
-          </div>
-        `;
-        return;
-      }
-
-      let html = '';
-      matchedChannels.forEach(ch => {
-        html += createChannelCardHtml(ch);
-      });
-
-      resultsGrid.innerHTML = html;
+      resultsGrid.innerHTML = matchedChannels.length === 0 
+        ? `<div class="col-span-full py-10 text-center text-slate-500">Nenhum resultado para "${q}".</div>`
+        : matchedChannels.map(ch => createChannelCardHtml(ch)).join('');
       lucide.createIcons();
     }
   </script>
