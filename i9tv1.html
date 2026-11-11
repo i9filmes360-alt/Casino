@@ -180,6 +180,7 @@
     max-width: 1100px;
     display: flex;
     flex-direction: column;
+    transition: 0.3s;
   }
 
   .player-frame {
@@ -232,6 +233,26 @@
     padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
   }
 
+  /* CSS ESPECÍFICO PARA TELA CHEIA */
+  .player-wrapper:fullscreen {
+    max-width: 100%;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0;
+  }
+  .player-wrapper:fullscreen .player-frame {
+    height: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+  .player-wrapper:fullscreen .player-bar {
+    display: none; /* Esconde os botões no modo tela cheia */
+  }
+
   @media (max-width: 850px) {
     .layout { flex-direction: column; }
     .main-content { order: 1; padding: 10px; flex: none; background: var(--bg); }
@@ -278,7 +299,7 @@
   </aside>
 
   <main class="main-content">
-    <div class="player-wrapper">
+    <div class="player-wrapper" id="playerWrapper">
       <div class="player-frame">
         <iframe id="player" src="about:blank" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="no-referrer"></iframe>
       </div>
@@ -289,13 +310,14 @@
           <span class="now-name" id="nowName">...</span>
         </div>
         <span class="counter" id="counter">0 / 0</span>
+        <button class="nav-btn" id="fsBtn" title="Tela Cheia" style="font-size: 18px;">⛶</button>
         <button class="nav-btn" id="nextBtn" title="Próximo Canal">+</button>
       </div>
     </div>
   </main>
 </div>
 
-<!-- SISTEMA DE BLOQUEIO (QBet, Amazon, Tigrinho) -->
+<!-- SISTEMA DE BLOQUEIO -->
 <script>
 (function(){
   if (window.__adblock_injected) return;
@@ -334,30 +356,6 @@
     return e.returnValue;
   });
 
-  try {
-    window._ydUsuarioPediuFs = false;
-    document.addEventListener('click', function(e) {
-      try {
-        var t = e.target;
-        var btn = t ? (t.closest ? t.closest('.vjs-fullscreen-control, .ytp-fullscreen-button, [title*="Fullscreen" i], [title*="fullscreen" i], [title*="Tela cheia" i], [aria-label*="Tela cheia" i], [aria-label*="Fullscreen" i]') : null) : null;
-        if (btn) {
-          window._ydUsuarioPediuFs = true;
-          setTimeout(function(){ window._ydUsuarioPediuFs = false; }, 1500);
-        }
-      } catch(err) {}
-    }, true);
-
-    var _origReq = Element.prototype.requestFullscreen || Element.prototype.webkitRequestFullscreen;
-    function interceptarReqFs() {
-      if (!window._ydUsuarioPediuFs) return Promise.resolve();
-      window._ydUsuarioPediuFs = false;
-      if (_origReq) return _origReq.apply(this, arguments);
-      return Promise.resolve();
-    }
-    if (Element.prototype.requestFullscreen) Element.prototype.requestFullscreen = interceptarReqFs;
-    if (Element.prototype.webkitRequestFullscreen) Element.prototype.webkitRequestFullscreen = interceptarReqFs;
-  } catch(e) {}
-
   function removerOverlaysFantasmas() {
     try {
       var badElements = document.querySelectorAll('[data-rc-player-gesture], button[data-rc-player-gesture], [class*="rc-player-gesture"], .ad-overlay, [class*="floating-ad"], [class*="popunder"], [id*="popunder"], video[title="Advertisement"]');
@@ -371,7 +369,7 @@
 })();
 </script>
 
-<!-- LÓGICA DO APLICATIVO -->
+<!-- LÓGICA DO APLICATIVO E SWIPE -->
 <script>
 const CATEGORIES = [
   {
@@ -459,6 +457,8 @@ const counter = document.getElementById("counter");
 const tabsEl = document.getElementById("tabs");
 const channelsContainer = document.getElementById("channelsContainer");
 const channelSectionTitle = document.getElementById("channelSectionTitle");
+const playerWrapper = document.getElementById("playerWrapper");
+const fsBtn = document.getElementById("fsBtn");
 
 const ALL = [];
 CATEGORIES.forEach((cat, catIdx) => {
@@ -548,6 +548,48 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowRight") document.getElementById("nextBtn").click();
   if (e.key === "ArrowLeft") document.getElementById("prevBtn").click();
 });
+
+// Lógica do Botão de Tela Cheia customizado
+fsBtn.onclick = () => {
+  if (!document.fullscreenElement) {
+    if (playerWrapper.requestFullscreen) playerWrapper.requestFullscreen();
+    else if (playerWrapper.webkitRequestFullscreen) playerWrapper.webkitRequestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  }
+};
+
+// Lógica de Swipe (Passar o dedo) para mudar de canal
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+
+document.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+  touchStartTime = Date.now();
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  const touchEndX = e.changedTouches[0].screenX;
+  const touchEndY = e.changedTouches[0].screenY;
+  const dx = touchEndX - touchStartX;
+  const dy = touchEndY - touchStartY;
+  const dt = Date.now() - touchStartTime;
+
+  // Verifica se foi um deslize horizontal rápido (Swipe)
+  // Se moveu mais de 60px para o lado e menos de 80px para cima/baixo em menos de meio segundo
+  if (dt < 500 && Math.abs(dx) > 60 && Math.abs(dy) < 80) {
+    if (dx < 0) {
+      // Deslizou para a Esquerda -> Próximo Canal
+      document.getElementById("nextBtn").click();
+    } else {
+      // Deslizou para a Direita -> Canal Anterior
+      document.getElementById("prevBtn").click();
+    }
+  }
+}, { passive: true });
 
 renderTabs();
 playChannel(0, 0);
