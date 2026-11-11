@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TV Online</title>
+<style>
+  :root{
+    --bg:#080a10;
+    --sidebar-bg:#10141f;
+    --line:#222a3b;
+    --txt:#e8ecf6;
+    --muted:#8b95ad;
+    --accent:#7c5cff;
+    --accent2:#00d8b4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: var(--txt);
+    background: var(--bg);
+  }
+
+  /* ====== LAYOUT PADRÃO (PC) ====== */
+  .layout {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .sidebar {
+    width: 380px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand {
+    padding: 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 0 15px var(--accent);
+  }
+  .brand h1 { font-size: 18px; font-weight: 800; margin: 0; }
+  .brand h1 span {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; color: transparent;
+  }
+
+  .categories-section {
+    flex: 0 0 auto;
+    max-height: 40%;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 1px;
+    padding: 12px 16px 4px;
+    font-weight: 700;
+  }
+
+  .tabs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .tabs::-webkit-scrollbar { width: 4px; }
+  .tabs::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+  .tab {
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: 0.2s;
+  }
+  .tab:hover { background: rgba(255,255,255,0.03); color: #fff; }
+  .tab.active {
+    background: rgba(124,92,255,0.15);
+    color: var(--accent);
+    border-color: rgba(124,92,255,0.3);
+  }
+
+  .channels-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .channels-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    align-content: start;
+  }
+  
+  .channels-container::-webkit-scrollbar { width: 4px; }
+  .channels-container::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+  .ch-card {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 10px 6px; border-radius: 10px; text-align: center;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--line);
+    cursor: pointer; transition: 0.2s;
+  }
+  .ch-card:hover {
+    background: rgba(255,255,255,0.06); border-color: rgba(124,92,255,0.5); transform: translateY(-2px);
+  }
+  .ch-card.active {
+    border-color: var(--accent2); background: rgba(0, 216, 180, 0.1);
+  }
+
+  .ch-logo-wrapper {
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9); 
+    padding: 4px;
+    overflow: hidden;
+  }
+
+  .ch-logo-img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+
+  .ch-logo-fallback {
+    width: 44px; height: 44px; border-radius: 8px;
+    display: none; 
+    place-items: center;
+    font-size: 14px; font-weight: 900; color: #000;
+    background: linear-gradient(140deg, hsl(var(--h) 82% 60%), hsl(calc(var(--h) + 45) 82% 48%));
+  }
+
+  .ch-name {
+    font-size: 10px; font-weight: 600; color: #aeb8cf;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #101424 0%, var(--bg) 100%);
+  }
+
+  .player-wrapper {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .player-frame {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+  }
+
+  .player-frame iframe {
+    width: 100%; height: 100%; border: 0; display: block;
+  }
+
+  .player-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #121724;
+    border-radius: 0 0 12px 12px;
+    border: 1px solid var(--line);
+    border-top: none;
+  }
+
+  .nav-btn {
+    width: 46px; height: 46px; border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 24px; font-weight: bold; color: #fff;
+    cursor: pointer; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--line); transition: 0.2s;
+  }
+  .nav-btn:hover { background: var(--accent); border-color: transparent; }
+  .nav-btn:active { transform: scale(0.95); }
+
+  .now-playing {
+    text-align: center; flex: 1; padding: 0 10px;
+  }
+  .now-cat {
+    font-size: 11px; color: var(--accent2); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 2px; display: block;
+  }
+  .now-name {
+    font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+  }
+
+  .counter {
+    font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.05);
+    padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
+  }
+
+  /* RESPONSIVIDADE */
+  @media (max-width: 850px) {
+    .layout { flex-direction: column; }
+    .main-content {
+      order: 1; padding: 10px; flex: none; background: var(--bg);
+    }
+    .player-wrapper { max-width: 100%; }
+    .player-bar { padding: 8px 12px; }
+    .nav-btn { width: 40px; height: 40px; font-size: 20px; }
+    .now-playing .now-name { font-size: 15px; }
+    .now-playing .now-cat { font-size: 10px; }
+    .counter { display: none; }
+
+    .sidebar {
+      order: 2; width: 100%; flex: 1;
+      border-right: none; border-top: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .brand { display: none; }
+    .categories-section { max-height: none; border-bottom: none; }
+    .section-title { display: none; }
+
+    .tabs {
+      flex-direction: row; overflow-x: auto; overflow-y: hidden;
+      padding: 10px; gap: 8px; border-bottom: 1px solid var(--line);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { white-space: nowrap; padding: 8px 16px; border-radius: 20px; font-size: 13px; }
+
+    .channels-section { flex: 1; overflow: hidden; }
+    .channels-container {
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      padding: 10px; gap: 8px;
+    }
+    .ch-logo-wrapper { width: 38px; height: 38px; padding: 3px; }
+    .ch-logo-fallback { width: 38px; height: 38px; font-size: 12px; }
+    .ch-name { font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="dot"></div>
+      <h1>TV <span>Online</span></h1>
+    </div>
+    <div class="categories-section">
+      <div class="section-title">Categorias</div>
+      <div class="tabs" id="tabs"></div>
+    </div>
+    <div class="channels-section">
+      <div class="section-title" id="channelSectionTitle">Canais</div>
+      <div class="channels-container" id="channelsContainer"></div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="player-wrapper">
+      <div class="player-frame">
+        <!-- Sandbox removido para o player voltar a funcionar -->
+        <iframe id="player" 
+                src="about:blank" 
+                allowfullscreen 
+                allow="autoplay; encrypted-media; picture-in-picture" 
+                referrerpolicy="no-referrer">
+        </iframe>
+      </div>
+      <div class="player-bar">
+        <button class="nav-btn" id="prevBtn" title="Canal Anterior">−</button>
+        <div class="now-playing">
+          <span class="now-cat" id="nowCat">...</span>
+          <span class="now-name" id="nowName">...</span>
+        </div>
+        <span class="counter" id="counter">0 / 0</span>
+        <button class="nav-btn" id="nextBtn" title="Próximo Canal">+</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const CATEGORIES = [
+  {
+    name: "Entretenimento",
+    channels: [
+      ["adultswim","Adult Swim", "adult-swim"], ["ae","A&E", "a-and-e"], ["arte1","Arte 1", "arte1"], ["bis","BIS", "bis"],
+      ["canaloff","Canal Off", "canal-off"], ["curta","Curta!", "curta"], ["discoveryheh","Discovery H&H", "discovery-home-health"],
+      ["e","E!", "e"], ["fashiontv","Fashion TV", "fashion-tv"], ["foodnetwork","Food Network", "food-network"],
+      ["globoplaynovelas","Globoplay Novelas", "globoplay-novelas"], ["gnt","GNT", "gnt"], ["hgtv","HGTV", "hgtv"],
+      ["modoviagem","Modo Viagem", "modo-viagem"], ["multishow","Multishow", "multishow"], ["tlc","TLC", "tlc"]
+    ]
+  },
+  {
+    name: "Notícias",
+    channels: [
+      ["agromais","AgroMais", "agro-mais"], ["cnnbrasil","CNN Brasil", "cnn-brasil"],
+      ["globonews","GloboNews", "globonews"], ["recordnews","Record News", "record-news"]
+    ]
+  },
+  {
+    name: "Filmes e Séries",
+    channels: [
+      ["amc","AMC", "amc"], ["axn","AXN", "axn"], ["canalbrasil","Canal Brasil", "canal-brasil"], ["cinemax","Cinemax", "cinemax"],
+      ["discoveryid","Discovery ID", "investigation-discovery"], ["hbo","HBO", "hbo"], ["hbo2","HBO 2", "hbo-2"],
+      ["hbofamily","HBO Family", "hbo-family"], ["hbosignature","HBO Signature", "hbo-signature"], ["hboxtreme","HBO Xtreme", "hbo-xtreme"],
+      ["hboplus","HBO Plus", "hbo-plus"], ["lifetime","Lifetime", "lifetime"], ["megapix","Megapix", "megapix"],
+      ["sonychannel","Sony Channel", "sony-channel"], ["sonymovies","Sony Movies", "sony-movies"], ["space","Space", "space"],
+      ["studiouniversal","Studio Universal", "studio-universal"], ["telecineaction","Telecine Action", "telecine"],
+      ["telecinecult","Telecine Cult", "telecine"], ["telecinefun","Telecine Fun", "telecine"],
+      ["telecinepipoca","Telecine Pipoca", "telecine"], ["telecinepremium","Telecine Premium", "telecine"],
+      ["telecinetouch","Telecine Touch", "telecine"], ["tnt","TNT", "tnt"], ["tntnovelas","TNT Novelas", "tnt-novelas"],
+      ["tntseries","TNT Séries", "tnt-series"], ["universaltv","Universal TV", "universal-tv"], ["usa","USA", "usa"],
+      ["warnertv","Warner TV", "warner-tv"]
+    ]
+  },
+  {
+    name: "Documentários",
+    channels: [
+      ["animalplanet","Animal Planet", "animal-planet"], ["discoverychannel","Discovery Channel", "discovery-channel"],
+      ["discoveryscience","Discovery Science", "discovery-science"], ["discoverytheater","Discovery Theater", "discovery-theater"],
+      ["discoveryturbo","Discovery Turbo", "discovery-turbo"], ["discoveryworld","Discovery World", "discovery-world"],
+      ["futura","Futura", "futura"], ["history","History", "history"], ["history2","History 2", "history-2"]
+    ]
+  },
+  {
+    name: "Canais Abertos",
+    channels: [
+      ["record","Record", "record"], ["redetv","RedeTV!", "redetv"], ["saborearte","Sabor & Arte", "sabor-e-arte"],
+      ["sbt","SBT", "sbt"], ["aparecida","TV Aparecida", "tv-aparecida"], ["tvbrasil","TV Brasil", "tv-brasil"],
+      ["tvcultura","TV Cultura", "tv-cultura"]
+    ]
+  },
+  {
+    name: "Esportes",
+    channels: [
+      ["cazetv","Cazé TV", "caze-tv"], ["cazetv2","Cazé TV 2", "caze-tv-2"], ["cazetv3","Cazé TV 3", "caze-tv-3"],
+      ["combate","Combate", "combate"], ["nsports","N Sports", "n-sports"], ["premiereclubes","Premiere Clubes", "premiere"],
+      ["premiere2","Premiere 2", "premiere-2"], ["premiere3","Premiere 3", "premiere-3"], ["premiere4","Premiere 4", "premiere-4"],
+      ["premiere5","Premiere 5", "premiere-5"], ["premiere6","Premiere 6", "premiere-6"], ["premiere7","Premiere 7", "premiere-7"],
+      ["premiere8","Premiere 8", "premiere-8"], ["sportv","SporTV", "sportv"], ["sportv2","SporTV 2", "sportv2"],
+      ["sportv3","SporTV 3", "sportv3"]
+    ]
+  },
+  {
+    name: "Infantil",
+    channels: [
+      ["cartoonnetwork","Cartoon Network", "cartoon-network"], ["cartoonito","Cartoonito", "cartoonito"],
+      ["discoverykids","Discovery Kids", "discovery-kids"], ["gloob","Gloob", "gloob"],
+      ["gloobinho","Gloobinho", "gloobinho"], ["tooncast","Tooncast", "tooncast"]
+    ]
+  }
+];
+
+const BASE_URL = "https://rdcanais.org/";
+const LOGO_BASE_URL = "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/brazil/";
+
+let currentCatIndex = 0;
+let currentChanIndex = 0;
+
+const playerEl = document.getElementById("player");
+const nowName = document.getElementById("nowName");
+const nowCat = document.getElementById("nowCat");
+const counter = document.getElementById("counter");
+const tabsEl = document.getElementById("tabs");
+const channelsContainer = document.getElementById("channelsContainer");
+const channelSectionTitle = document.getElementById("channelSectionTitle");
+
+const ALL = [];
+CATEGORIES.forEach((cat, catIdx) => {
+  cat.channels.forEach(([slug, name, logoSlug], chanIdx) => {
+    ALL.push({ slug, name, category: cat.name, catIdx, chanIdx, logoSlug });
+  });
+});
+
+function renderTabs() {
+  tabsEl.innerHTML = "";
+  CATEGORIES.forEach((cat, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "tab";
+    btn.textContent = cat.name;
+    btn.onclick = () => playChannel(idx, 0);
+    tabsEl.appendChild(btn);
+  });
+}
+
+function playChannel(catIdx, chanIdx) {
+  currentCatIndex = catIdx;
+  currentChanIndex = chanIdx;
+  
+  const cat = CATEGORIES[catIdx];
+  const ch = cat.channels[chanIdx];
+  
+  playerEl.src = BASE_URL + ch[0];
+  nowCat.textContent = cat.name;
+  nowName.textContent = ch[1];
+  
+  const globalIndex = ALL.findIndex(c => c.slug === ch[0]);
+  counter.textContent = (globalIndex + 1) + " / " + ALL.length;
+
+  document.querySelectorAll(".tab").forEach((btn, idx) => {
+    btn.classList.toggle("active", idx === catIdx);
+  });
+
+  channelSectionTitle.textContent = `Canais: ${cat.name}`;
+
+  renderChannels(catIdx, ch[0]);
+}
+
+function renderChannels(catIdx, activeSlug) {
+  channelsContainer.innerHTML = "";
+  const cat = CATEGORIES[catIdx];
+
+  cat.channels.forEach(([slug, name, logoSlug], chanIdx) => {
+    const card = document.createElement("div");
+    card.className = "ch-card" + (slug === activeSlug ? " active" : "");
+    
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+    const initials = name.substring(0, 2).toUpperCase();
+    const logoUrl = LOGO_BASE_URL + logoSlug + "-br.png";
+
+    card.innerHTML = `
+      <div class="ch-logo-wrapper">
+        <img src="${logoUrl}" 
+             class="ch-logo-img" 
+             alt="${name}" 
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+        <div class="ch-logo-fallback" style="--h:${h};">${initials}</div>
+      </div>
+      <div class="ch-name">${name}</div>
+    `;
+    
+    card.onclick = () => playChannel(catIdx, chanIdx);
+    channelsContainer.appendChild(card);
+  });
+}
+
+document.getElementById("nextBtn").onclick = () => {
+  const cat = CATEGORIES[currentCatIndex];
+  if (currentChanIndex < cat.channels.length - 1) {
+    playChannel(currentCatIndex, currentChanIndex + 1);
+  } else {
+    playChannel((currentCatIndex + 1) % CATEGORIES.length, 0);
+  }
+};
+
+document.getElementById("prevBtn").onclick = () => {
+  if (currentChanIndex > 0) {
+    playChannel(currentCatIndex, currentChanIndex - 1);
+  } else {
+    const prevCat = (currentCatIndex - 1 + CATEGORIES.length) % CATEGORIES.length;
+    playChannel(prevCat, CATEGORIES[prevCat].channels.length - 1);
+  }
+};
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight") document.getElementById("nextBtn").click();
+  if (e.key === "ArrowLeft") document.getElementById("prevBtn").click();
+});
+
+renderTabs();
+playChannel(0, 0);
+</script>
+</body>
+</html>
