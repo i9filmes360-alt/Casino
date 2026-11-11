@@ -180,7 +180,6 @@
     max-width: 1100px;
     display: flex;
     flex-direction: column;
-    transition: 0.3s;
   }
 
   .player-frame {
@@ -195,6 +194,27 @@
 
   .player-frame iframe {
     width: 100%; height: 100%; border: 0; display: block;
+  }
+
+  /* =========================================
+     BOTÕES INVISÍVEIS NAS LATERAIS DO PLAYER
+     ========================================= */
+  .edge-tap {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 12%; /* Pega 12% da borda esquerda e direita */
+    z-index: 10; /* Fica acima do iframe */
+    cursor: pointer;
+    background: transparent;
+    transition: background 0.1s;
+  }
+  .edge-tap.left { left: 0; }
+  .edge-tap.right { right: 0; }
+  
+  /* Efeito visual de clique para o usuário saber que funcionou */
+  .edge-tap:active {
+    background: rgba(255, 255, 255, 0.2);
   }
 
   .player-bar {
@@ -233,34 +253,15 @@
     padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
   }
 
-  /* CSS ESPECÍFICO PARA TELA CHEIA */
-  .player-wrapper:fullscreen {
-    max-width: 100%;
-    width: 100vw;
-    height: 100vh;
-    background: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 0;
-  }
-  .player-wrapper:fullscreen .player-frame {
-    height: 100%;
-    aspect-ratio: auto;
-    border-radius: 0;
-  }
-  .player-wrapper:fullscreen .player-bar {
-    display: none; /* Esconde os botões no modo tela cheia */
-  }
-
+  /* RESPONSIVIDADE */
   @media (max-width: 850px) {
     .layout { flex-direction: column; }
     .main-content { order: 1; padding: 10px; flex: none; background: var(--bg); }
     .player-wrapper { max-width: 100%; }
-    .player-bar { padding: 8px 12px; }
-    .nav-btn { width: 40px; height: 40px; font-size: 20px; }
-    .now-playing .now-name { font-size: 15px; }
-    .now-playing .now-cat { font-size: 10px; }
+    .player-bar { padding: 8px 12px; gap: 4px; }
+    .nav-btn { width: 36px; height: 36px; font-size: 18px; }
+    .now-playing .now-name { font-size: 14px; }
+    .now-playing .now-cat { font-size: 9px; }
     .counter { display: none; }
 
     .sidebar { order: 2; width: 100%; flex: 1; border-right: none; border-top: 1px solid var(--line); overflow: hidden; }
@@ -277,6 +278,8 @@
     .ch-logo-wrapper { width: 38px; height: 38px; padding: 3px; }
     .ch-logo-fallback { width: 38px; height: 38px; font-size: 12px; }
     .ch-name { font-size: 9px; }
+
+    .edge-tap { width: 20%; } /* No celular, a área invisível é maior (20%) */
   }
 </style>
 </head>
@@ -302,7 +305,12 @@
     <div class="player-wrapper" id="playerWrapper">
       <div class="player-frame">
         <iframe id="player" src="about:blank" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="no-referrer"></iframe>
+        
+        <!-- BOTÕES INVISÍVEIS LATERAIS -->
+        <div class="edge-tap left" id="tapPrev" title="Canal Anterior"></div>
+        <div class="edge-tap right" id="tapNext" title="Próximo Canal"></div>
       </div>
+      
       <div class="player-bar">
         <button class="nav-btn" id="prevBtn" title="Canal Anterior">−</button>
         <div class="now-playing">
@@ -310,7 +318,7 @@
           <span class="now-name" id="nowName">...</span>
         </div>
         <span class="counter" id="counter">0 / 0</span>
-        <button class="nav-btn" id="fsBtn" title="Tela Cheia" style="font-size: 18px;">⛶</button>
+        <button class="nav-btn" id="fsBtn" title="Tela Cheia" style="font-size: 16px;">⛶</button>
         <button class="nav-btn" id="nextBtn" title="Próximo Canal">+</button>
       </div>
     </div>
@@ -526,30 +534,37 @@ function renderChannels(catIdx, activeSlug) {
   });
 }
 
-document.getElementById("nextBtn").onclick = () => {
+function nextChannel() {
   const cat = CATEGORIES[currentCatIndex];
   if (currentChanIndex < cat.channels.length - 1) {
     playChannel(currentCatIndex, currentChanIndex + 1);
   } else {
     playChannel((currentCatIndex + 1) % CATEGORIES.length, 0);
   }
-};
+}
 
-document.getElementById("prevBtn").onclick = () => {
+function prevChannel() {
   if (currentChanIndex > 0) {
     playChannel(currentCatIndex, currentChanIndex - 1);
   } else {
     const prevCat = (currentCatIndex - 1 + CATEGORIES.length) % CATEGORIES.length;
     playChannel(prevCat, CATEGORIES[prevCat].channels.length - 1);
   }
-};
+}
+
+document.getElementById("nextBtn").onclick = nextChannel;
+document.getElementById("prevBtn").onclick = prevChannel;
+
+/* AQUI ESTÃO AS AÇÕES DOS BOTÕES INVISÍVEIS */
+document.getElementById("tapNext").onclick = nextChannel;
+document.getElementById("tapPrev").onclick = prevChannel;
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowRight") document.getElementById("nextBtn").click();
-  if (e.key === "ArrowLeft") document.getElementById("prevBtn").click();
+  if (e.key === "ArrowRight") nextChannel();
+  if (e.key === "ArrowLeft") prevChannel();
 });
 
-// Lógica do Botão de Tela Cheia customizado
+// Tela cheia
 fsBtn.onclick = () => {
   if (!document.fullscreenElement) {
     if (playerWrapper.requestFullscreen) playerWrapper.requestFullscreen();
@@ -560,7 +575,7 @@ fsBtn.onclick = () => {
   }
 };
 
-// Lógica de Swipe (Passar o dedo) para mudar de canal
+// Gesto de Swipe (Passar o dedo)
 let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
@@ -578,16 +593,9 @@ document.addEventListener('touchend', (e) => {
   const dy = touchEndY - touchStartY;
   const dt = Date.now() - touchStartTime;
 
-  // Verifica se foi um deslize horizontal rápido (Swipe)
-  // Se moveu mais de 60px para o lado e menos de 80px para cima/baixo em menos de meio segundo
   if (dt < 500 && Math.abs(dx) > 60 && Math.abs(dy) < 80) {
-    if (dx < 0) {
-      // Deslizou para a Esquerda -> Próximo Canal
-      document.getElementById("nextBtn").click();
-    } else {
-      // Deslizou para a Direita -> Canal Anterior
-      document.getElementById("prevBtn").click();
-    }
+    if (dx < 0) nextChannel(); // Esquerda -> Próximo
+    else prevChannel(); // Direita -> Anterior
   }
 }, { passive: true });
 
