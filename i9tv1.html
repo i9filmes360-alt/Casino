@@ -197,14 +197,14 @@
   }
 
   /* =========================================
-     BOTÕES INVISÍVEIS NAS LATERAIS DO PLAYER
+     BOTÕES INVISÍVEIS FININHOS NAS LATERAIS
      ========================================= */
   .edge-tap {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 12%; /* Pega 12% da borda esquerda e direita */
-    z-index: 10; /* Fica acima do iframe */
+    top: 25%;       /* Fica só no meio, não cobre o topo (volume) */
+    bottom: 25%;    /* Não cobre a barra de progresso (embaixo) */
+    width: 40px;    /* Bem fininho, apenas uma tira na borda */
+    z-index: 10;
     cursor: pointer;
     background: transparent;
     transition: background 0.1s;
@@ -212,9 +212,8 @@
   .edge-tap.left { left: 0; }
   .edge-tap.right { right: 0; }
   
-  /* Efeito visual de clique para o usuário saber que funcionou */
   .edge-tap:active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
   }
 
   .player-bar {
@@ -279,7 +278,8 @@
     .ch-logo-fallback { width: 38px; height: 38px; font-size: 12px; }
     .ch-name { font-size: 9px; }
 
-    .edge-tap { width: 20%; } /* No celular, a área invisível é maior (20%) */
+    /* No celular, deixa a tira ainda mais fina */
+    .edge-tap { width: 30px; } 
   }
 </style>
 </head>
@@ -555,7 +555,6 @@ function prevChannel() {
 document.getElementById("nextBtn").onclick = nextChannel;
 document.getElementById("prevBtn").onclick = prevChannel;
 
-/* AQUI ESTÃO AS AÇÕES DOS BOTÕES INVISÍVEIS */
 document.getElementById("tapNext").onclick = nextChannel;
 document.getElementById("tapPrev").onclick = prevChannel;
 
@@ -564,7 +563,6 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") prevChannel();
 });
 
-// Tela cheia
 fsBtn.onclick = () => {
   if (!document.fullscreenElement) {
     if (playerWrapper.requestFullscreen) playerWrapper.requestFullscreen();
@@ -575,7 +573,6 @@ fsBtn.onclick = () => {
   }
 };
 
-// Gesto de Swipe (Passar o dedo)
 let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
@@ -594,8 +591,8 @@ document.addEventListener('touchend', (e) => {
   const dt = Date.now() - touchStartTime;
 
   if (dt < 500 && Math.abs(dx) > 60 && Math.abs(dy) < 80) {
-    if (dx < 0) nextChannel(); // Esquerda -> Próximo
-    else prevChannel(); // Direita -> Anterior
+    if (dx < 0) nextChannel();
+    else prevChannel();
   }
 }, { passive: true });
 
