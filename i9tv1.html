@@ -338,9 +338,9 @@
   <main class="main-content">
     <div class="player-wrapper" id="playerWrapper">
       <div class="player-frame">
-        <iframe id="player" src="about:blank" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="no-referrer"></iframe>
+        <!-- ALTERAÇÃO CRÍTICA: referrerpolicy="strict-origin-when-cross-origin" -->
+        <iframe id="player" src="about:blank" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
         
-        <!-- BOTÕES INVISÍVEIS LATERAIS -->
         <div class="edge-tap left" id="tapPrev" title="Canal Anterior"></div>
         <div class="edge-tap right" id="tapNext" title="Próximo Canal"></div>
       </div>
@@ -427,6 +427,8 @@ const CATEGORIES = [
   {
     name: "Notícias",
     channels: [
+      // Link usando youtube-nocookie.com para evitar o erro 153
+      ["https://www.youtube-nocookie.com/embed/live_stream?channel=UC376n347Ob5Lwzq2WGzF1AA", "SBT News", "sbt-news"],
       ["agromais","AgroMais", "agro-mais"], ["cnnbrasil","CNN Brasil", "cnn-brasil"],
       ["globonews","GloboNews", "globonews"], ["recordnews","Record News", "record-news"]
     ]
@@ -527,7 +529,12 @@ function playChannel(catIdx, chanIdx) {
   const cat = CATEGORIES[catIdx];
   const ch = cat.channels[chanIdx];
   
-  playerEl.src = BASE_URL + ch[0];
+  let streamUrl = ch[0];
+  if (!streamUrl.startsWith('http')) {
+    streamUrl = BASE_URL + streamUrl;
+  }
+  
+  playerEl.src = streamUrl;
   nowCat.textContent = cat.name;
   nowName.textContent = ch[1];
   
@@ -597,7 +604,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") prevChannel();
 });
 
-// Tela cheia (Customizada para o playerWrapper)
+// Tela cheia
 fsBtn.onclick = () => {
   if (!document.fullscreenElement) {
     if (playerWrapper.requestFullscreen) playerWrapper.requestFullscreen();
@@ -608,7 +615,6 @@ fsBtn.onclick = () => {
   }
 };
 
-// Muda o ícone do botão quando entra/sai da tela cheia
 document.addEventListener('fullscreenchange', () => {
   if (document.fullscreenElement) {
     fsBtn.innerHTML = '✖';
