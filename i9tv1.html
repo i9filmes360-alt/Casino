@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>i9tv</title>
+<!-- BIBLIOTECA HLS.JS PARA REPRODUZIR LINKS .M3U8 -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
   :root{
     --bg:#080a10;
@@ -194,13 +196,10 @@
     position: relative;
   }
 
-  .player-frame iframe {
-    width: 100%; height: 100%; border: 0; display: block;
+  #playerIframe, #playerVideo {
+    width: 100%; height: 100%; border: 0; display: block; position: absolute; top: 0; left: 0;
   }
 
-  /* =========================================
-     BOTÕES INVISÍVEIS FININHOS (APENAS 20PX)
-     ========================================= */
   .edge-tap {
     position: absolute;
     top: 50%;
@@ -220,9 +219,6 @@
     background: rgba(255, 255, 255, 0.3);
   }
 
-  /* =========================================
-     ESTILOS DE TELA CHEIA (BARRA FLUTUANTE)
-     ========================================= */
   .player-wrapper:fullscreen {
     max-width: 100%;
     width: 100vw;
@@ -287,7 +283,6 @@
     padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
   }
 
-  /* RESPONSIVIDADE */
   @media (max-width: 850px) {
     .layout { flex-direction: column; }
     .main-content { order: 1; padding: 10px; flex: none; background: var(--bg); }
@@ -338,8 +333,8 @@
   <main class="main-content">
     <div class="player-wrapper" id="playerWrapper">
       <div class="player-frame">
-        <!-- ALTERAÇÃO CRÍTICA: referrerpolicy="strict-origin-when-cross-origin" -->
-        <iframe id="player" src="about:blank" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <iframe id="playerIframe" src="about:blank" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <video id="playerVideo" controls autoplay playsinline style="display: none; background: #000; object-fit: contain;"></video>
         
         <div class="edge-tap left" id="tapPrev" title="Canal Anterior"></div>
         <div class="edge-tap right" id="tapNext" title="Próximo Canal"></div>
@@ -359,7 +354,6 @@
   </main>
 </div>
 
-<!-- SISTEMA DE BLOQUEIO -->
 <script>
 (function(){
   if (window.__adblock_injected) return;
@@ -411,9 +405,33 @@
 })();
 </script>
 
-<!-- LÓGICA DO APLICATIVO E SWIPE -->
 <script>
 const CATEGORIES = [
+  {
+    name: "Filmes (Google Drive)",
+    channels: [
+      // NOVO FILME ADICIONADO AQUI
+      ["https://drive.google.com/file/d/1cRRbvf6SMEGoHQvnlvdVov8wO84b__X7/preview", "Guardiões da Galáxia Vol. 2 (2017)", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://drive.google.com/file/d/0ByYoqq6J6r_COE9aM1BIWVZFbFE/preview?resourcekey=0-0OtDMQJLnvmzXrjTQyYjOg", "A Rede", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://drive.google.com/file/d/1ZpWi7tTkJmhYP6ylgGVMozpNh56z2GYq/preview", "A Família Busca Pé", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://drive.google.com/file/d/0BxGPV1cw10iea1pJZGoyT1BobUU/preview?resourcekey=0-SvQexCXBSrmALbI6NQDqAw", "As Namoradas do Papai", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://drive.google.com/file/d/1usyWLbKXBYY0gikoA4TC1I1ynajts3Ry/preview", "20 Anos Mais Jovem", "https://i.imgur.com/eXwJ5wK.png"]
+    ]
+  },
+  {
+    name: "Run Time Live Channels",
+    channels: [
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=2153&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794422289&id=2968&ip=104.28.235.132&override_expiration=1500&sign=SSU6GMOgj7ghwPZ4ALbAKnrk0jzeYFAqJhgHAUlC3fQ%3D", "Home Time TV e Filmes", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=6128&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423016&id=4676&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=ulhHbsU7cgrFnhXXMEXVAffOuBEIcEzQRtuFt5ty81M%3D", "Run Time Ação", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://amg00627-amg00627c9-runtime-latam-2613.playouts.now.amagi.tv/playlist/amg00627-banijayfast-masterchefbrazil-runtimelatam/playlist.m3u8?ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&ua=Mozilla%2F5.0%20(Windows%20NT%2010.0%3B%20Win64%3B%20x64)%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)%20Chrome%2F157.0.0.0%20Safari%2F537.36%20Edg%2F157.0.0.0&dnt=0&app_bundle=&app_name=Runtime&app_store_url=&content_episode=&content_season=&content_livestream=1&content_producer_name=REPLACEME&channel_name=run&network_name=&did=aeccfda06638cdcdcf257c125d880deb&us_privacy=1NNN&gdpr_consent=0&gdpr=0&lmt=0&device_make=tablet&device_model=&coppa=REPLACEME&timestamp=1794423200&id=16048&override_expiration=1500&sign=PcYJx4qEmu7xA2XZsmPQQSpksmXGQ61pukSrXEfw81I%3D", "Run Time MasterChef", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=5589&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423361&id=6807&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=FMEE9lrFZ0YRFD%2FGmKY5Wb7VjUMvfSkh7WcFDDnojbQ%3D", "Run Time Famili", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=4865&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423447&id=6801&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=3vjaXkhiXm%2FzYcxMYVD08ZZB9I6tDmfa6ot%2FdRWzhQI%3D", "Run Time Cine Espanto", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=4864&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423520&id=6803&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=wKdY4T%2FO7J6rwp0MsEViXX1Yhqg6Oct8bQPSk85Uyr8%3D", "Run Time Crime", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=5442&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=en&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423561&id=11808&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=LwtCAMGczI4Mh4ad2WwO4xbQiPAmt0NLxQUeVMdtVd4%3D", "Run Time TC Brasil", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=2553&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423597&id=4678&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=OSynTkgr4MQa%2BOGviRv5H4KhtbvCYgCG%2F32B%2FCNDod8%3D", "Run Time Comedia", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=6133&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423638&id=6805&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=Y%2FQLzkpvgt5Nsnawn4wQu1QEWQ6B%2BDYytMOqzlBIZJM%3D", "Run Time Romance", "https://i.imgur.com/eXwJ5wK.png"]
+    ]
+  },
   {
     name: "Entretenimento",
     channels: [
@@ -421,16 +439,34 @@ const CATEGORIES = [
       ["canaloff","Canal Off", "canal-off"], ["curta","Curta!", "curta"], ["discoveryheh","Discovery H&H", "discovery-home-health"],
       ["e","E!", "e"], ["fashiontv","Fashion TV", "fashion-tv"], ["foodnetwork","Food Network", "food-network"],
       ["globoplaynovelas","Globoplay Novelas", "globoplay-novelas"], ["gnt","GNT", "gnt"], ["hgtv","HGTV", "hgtv"],
-      ["modoviagem","Modo Viagem", "modo-viagem"], ["multishow","Multishow", "multishow"], ["tlc","TLC", "tlc"]
+      ["modoviagem","Modo Viagem", "modo-viagem"], ["multishow","Multishow", "multishow"], ["tlc","TLC", "tlc"],
+      ["https://5c483b9d1019c.streamlock.net/8054/8054/playlist.m3u8", "Chroma TV", "https://i.imgur.com/SnaIMgj.png"],
+      ["http://wz4.dnip.com.br/fratevitv/fratevitv.sdp/playlist.m3u8", "TV Viçosa", "https://i.imgur.com/TZF55f9.png"]
     ]
   },
   {
     name: "Notícias",
     channels: [
-      // Link usando youtube-nocookie.com para evitar o erro 153
-      ["https://www.youtube-nocookie.com/embed/live_stream?channel=UC376n347Ob5Lwzq2WGzF1AA", "SBT News", "sbt-news"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=5431&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=en&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794421562&id=11709&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=sqRc0PvZoxK3j5hg%2FK2FvHTr2w%2FnWGNLJ%2FGv5InLW6I%3D", "Record News", "record-news"],
+      ["https://dai.google.com/linear/hls/event/1XSOdtQ0SH2G8OEmEfGgjQ/master.m3u8", "SBT News", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_JbcNE6RCucsFU6VM18cY5tIxFKNPziL3VUsUnOB6Hw&s=10"],
+      ["http://170.83.49.66:8083/JOVEMPANNEWSHD/index.m3u8", "Jovem Pan News", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTysDJJwUkJYCn5dhjN61jiJyAz2g-mn0Iz7p0kTwViTA&s=10"],
       ["agromais","AgroMais", "agro-mais"], ["cnnbrasil","CNN Brasil", "cnn-brasil"],
-      ["globonews","GloboNews", "globonews"], ["recordnews","Record News", "record-news"]
+      ["globonews","GloboNews", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRwg6P-85arNdhiVud3fae4FA6wCdxeLWhodl8xZwXVw&s=10"], 
+      ["https://5cf4a2c2512a2.streamlock.net/8104/8104/playlist.m3u8", "TV Sim Cachoeiro", "https://i.imgur.com/t5oUK3C.png"],
+      ["https://5cf4a2c2512a2.streamlock.net/8236/8236/playlist.m3u8", "TV Sim São Mateus", "https://i.imgur.com/t5oUK3C.png"]
+    ]
+  },
+  {
+    name: "Esportes",
+    channels: [
+      ["cazetv","Cazé TV", "caze-tv"], ["cazetv2","Cazé TV 2", "caze-tv-2"], ["cazetv3","Cazé TV 3", "caze-tv-3"],
+      ["combate","Combate", "combate"], ["nsports","N Sports", "n-sports"], ["premiereclubes","Premiere Clubes", "premiere"],
+      ["premiere2","Premiere 2", "premiere-2"], ["premiere3","Premiere 3", "premiere-3"], ["premiere4","Premiere 4", "premiere-4"],
+      ["premiere5","Premiere 5", "premiere-5"], ["premiere6","Premiere 6", "premiere-6"], ["premiere7","Premiere 7", "premiere-7"],
+      ["premiere8","Premiere 8", "premiere-8"], ["sportv","SporTV", "sportv"], ["sportv2","SporTV 2", "sportv2"],
+      ["sportv3","SporTV 3", "sportv3"],
+      ["http://181.78.197.59:8000/play/a07z/index.m3u8", "ESPN", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/960px-ESPN_wordmark.svg.png"],
+      ["http://181.78.197.59:8000/play/a07n/index.m3u8", "ESPN 4", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/ESPN_4_logo.svg/960px-ESPN_4_logo.svg.png"]
     ]
   },
   {
@@ -461,21 +497,24 @@ const CATEGORIES = [
   {
     name: "Canais Abertos",
     channels: [
-      ["globorj","TV Globo", "globo"], 
+      ["globorj","TV Globo", "globo"],
+      ["https://stmv1.srvstm.com/sistema7933/sistema7933/playlist.m3u8", "ISTV", "https://istv.com.br/wp-content/uploads/2026/02/ISTV_COLOR_2024.jpg"],
       ["record","Record", "record"], ["redetv","RedeTV!", "redetv"], ["saborearte","Sabor & Arte", "sabor-e-arte"],
       ["sbt","SBT", "sbt"], ["aparecida","TV Aparecida", "tv-aparecida"], ["tvbrasil","TV Brasil", "tv-brasil"],
-      ["tvcultura","TV Cultura", "tv-cultura"]
-    ]
-  },
-  {
-    name: "Esportes",
-    channels: [
-      ["cazetv","Cazé TV", "caze-tv"], ["cazetv2","Cazé TV 2", "caze-tv-2"], ["cazetv3","Cazé TV 3", "caze-tv-3"],
-      ["combate","Combate", "combate"], ["nsports","N Sports", "n-sports"], ["premiereclubes","Premiere Clubes", "premiere"],
-      ["premiere2","Premiere 2", "premiere-2"], ["premiere3","Premiere 3", "premiere-3"], ["premiere4","Premiere 4", "premiere-4"],
-      ["premiere5","Premiere 5", "premiere-5"], ["premiere6","Premiere 6", "premiere-6"], ["premiere7","Premiere 7", "premiere-7"],
-      ["premiere8","Premiere 8", "premiere-8"], ["sportv","SporTV", "sportv"], ["sportv2","SporTV 2", "sportv2"],
-      ["sportv3","SporTV 3", "sportv3"]
+      ["tvcultura","TV Cultura", "tv-cultura"],
+      ["https://video24.mais.uol.com.br/live/6146.m3u8", "Canal UOL", "https://conteudo.imguol.com.br/c/play/logo_canaluol_2024.svg"],
+      ["https://play.redecinturaoverde.com.br/playlist.m3u8", "Cinturão Verde", "https://eswqkrogupaisirwcsys.supabase.co/storage/v1/object/public/mbc-media/canais/1775688612576-u0628igjimf.png"],
+      ["https://5a57bda70564a.streamlock.net/conexaotv/conexaotv.sdp/playlist.m3u8", "Conexão TV", "https://i.imgur.com/CJ9SPsZ.png"],
+      ["https://5c483b9d1019c.streamlock.net/falalitoraltv/falalitoraltv/playlist.m3u8", "Fala Litoral", "https://i.imgur.com/NF6PL8O.png"],
+      ["https://play.mbcbrasil.tv.br/playlist.m3u8", "MBC Brasil TV", "https://eswqkrogupaisirwcsys.supabase.co/storage/v1/object/public/mbc-media/canais/1775702325773-d10vtu076za.png"],
+      ["http://wz3.dnip.com.br:1935/novaeratv/novaeratv.sdp/live.m3u8", "Nova Era TV", "https://i.imgur.com/IK3F9Uq.png"],
+      ["https://cdn-sp2.satlabscloud.com.br/RBS_HD/index.m3u8?token=Mw3YKkujzIi9hYQJ6kAQjQvly2VdBNuGPjHOq", "Rede Globo (RBS)", "https://i.imgur.com/O02TF2r.png"],
+      ["https://5c483b9d1019c.streamlock.net/8186/8186/playlist.m3u8", "TV Clube", "https://i.imgur.com/CpXjcyE.png"],
+      ["https://5b7f3c45ab7c2.streamlock.net/8008/smil:8008.smil/playlist.m3u8?DVR=", "TV Comunitária", "https://i.imgur.com/uxefHY3.png"],
+      ["https://5cf4a2c2512a2.streamlock.net/tvmaismarica/tvmaismarica/playlist.m3u8", "TV Mais Maricá", "https://i.imgur.com/lgCRX7q.png"],
+      ["https://5a2b083e9f360.streamlock.net/tvpantanal/tvpantanal.sdp/playlist.m3u8", "TV Pantanal MS", "https://i.imgur.com/0FOmktl.png"],
+      ["https://5a57bda70564a.streamlock.net/tvpasso/tvpasso.sdp/playlist.m3u8", "TV Passo Fundo", "https://i.imgur.com/QFE6TiV.png"],
+      ["https://5cf4a2c2512a2.streamlock.net/tvsuldeminas/tvsuldeminas/playlist.m3u8", "TV Sul de Minas", "https://i.imgur.com/hPh8cxK.png"]
     ]
   },
   {
@@ -485,6 +524,20 @@ const CATEGORIES = [
       ["discoverykids","Discovery Kids", "discovery-kids"], ["gloob","Gloob", "gloob"],
       ["gloobinho","Gloobinho", "gloobinho"], ["tooncast","Tooncast", "tooncast"]
     ]
+  },
+  {
+    name: "Religiosos",
+    channels: [
+      ["https://59fb88a1b1108.streamlock.net/fonte/_definst_/fontetv/chunklist_w1224511652.m3u8", "Fonte TV", "https://i.imgur.com/7q2BmNc.png"],
+      ["https://streamer1.streamhost.org/salive/GMI3anjoh/playlist.m3u8", "TV Terceiro Anjo", "https://i.imgur.com/PExKWNv.png"]
+    ]
+  },
+  {
+    name: "Educação e Cultura",
+    channels: [
+      ["http://flash.softhost.com.br:1935/ufg/tvufgweb/playlist.m3u8", "TV UFG", "https://i.imgur.com/Yp3dbJo.png"],
+      ["https://sitetv.brasilstream.com.br/hls/sitetv/index.m3u8?token=", "Unisul TV", "https://i.imgur.com/N0TvAFz.png"]
+    ]
   }
 ];
 
@@ -493,8 +546,10 @@ const LOGO_BASE_URL = "https://raw.githubusercontent.com/tv-logo/tv-logos/main/c
 
 let currentCatIndex = 0;
 let currentChanIndex = 0;
+let hls = null;
 
-const playerEl = document.getElementById("player");
+const iframeEl = document.getElementById("playerIframe");
+const videoEl = document.getElementById("playerVideo");
 const nowName = document.getElementById("nowName");
 const nowCat = document.getElementById("nowCat");
 const counter = document.getElementById("counter");
@@ -534,7 +589,6 @@ function playChannel(catIdx, chanIdx) {
     streamUrl = BASE_URL + streamUrl;
   }
   
-  playerEl.src = streamUrl;
   nowCat.textContent = cat.name;
   nowName.textContent = ch[1];
   
@@ -546,6 +600,39 @@ function playChannel(catIdx, chanIdx) {
   });
 
   channelSectionTitle.textContent = `Canais: ${cat.name}`;
+
+  if (hls) {
+    hls.destroy();
+    hls = null;
+  }
+  
+  if (streamUrl.includes('.m3u8')) {
+    iframeEl.style.display = 'none';
+    iframeEl.src = 'about:blank';
+    videoEl.style.display = 'block';
+    videoEl.src = '';
+    
+    if (Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(streamUrl);
+      hls.attachMedia(videoEl);
+      hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        videoEl.play().catch(e => console.log("Erro ao dar play:", e));
+      });
+    } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+      videoEl.src = streamUrl;
+      videoEl.addEventListener('loadedmetadata', function() {
+        videoEl.play().catch(e => console.log("Erro ao dar play:", e));
+      }, { once: true });
+    }
+  } else {
+    videoEl.style.display = 'none';
+    videoEl.pause();
+    videoEl.src = '';
+    iframeEl.style.display = 'block';
+    iframeEl.src = streamUrl;
+  }
+
   renderChannels(catIdx, ch[0]);
 }
 
@@ -560,7 +647,11 @@ function renderChannels(catIdx, activeSlug) {
     let h = 0;
     for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
     const initials = name.substring(0, 2).toUpperCase();
-    const logoUrl = LOGO_BASE_URL + logoSlug + "-br.png";
+    
+    let logoUrl = logoSlug;
+    if (!logoUrl.startsWith('http')) {
+        logoUrl = LOGO_BASE_URL + logoSlug + "-br.png";
+    }
 
     card.innerHTML = `
       <div class="ch-logo-wrapper">
@@ -604,7 +695,6 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") prevChannel();
 });
 
-// Tela cheia
 fsBtn.onclick = () => {
   if (!document.fullscreenElement) {
     if (playerWrapper.requestFullscreen) playerWrapper.requestFullscreen();
@@ -625,7 +715,6 @@ document.addEventListener('fullscreenchange', () => {
   }
 });
 
-// Gesto de Swipe
 let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
