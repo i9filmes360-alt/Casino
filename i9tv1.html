@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TV Online</title>
+<title>i9tv</title>
 <style>
   :root{
     --bg:#080a10;
@@ -52,7 +52,7 @@
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     box-shadow: 0 0 15px var(--accent);
   }
-  .brand h1 { font-size: 18px; font-weight: 800; margin: 0; }
+  .brand h1 { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
   .brand h1 span {
     background: linear-gradient(90deg, var(--accent), var(--accent2));
     -webkit-background-clip: text; color: transparent;
@@ -205,13 +205,13 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 120px;   /* Altura do clique */
-    width: 20px;     /* Super fino, do tamanho de um dedo */
-    z-index: 999;    /* Acima do player */
+    height: 120px;
+    width: 20px;
+    z-index: 999;
     cursor: pointer;
     background: transparent;
     border-radius: 4px;
-    touch-action: none; /* Melhora a resposta no celular */
+    touch-action: none;
   }
   .edge-tap.left { left: 0; }
   .edge-tap.right { right: 0; }
@@ -238,13 +238,12 @@
     aspect-ratio: auto;
     border-radius: 0;
   }
-  /* A barra fica flutuando no fundo em vez de sumir */
   .player-wrapper:fullscreen .player-bar {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(18, 23, 36, 0.85); /* Fundo semi-transparente */
+    background: rgba(18, 23, 36, 0.85);
     backdrop-filter: blur(10px);
     border: none;
     border-radius: 0;
@@ -324,7 +323,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="dot"></div>
-      <h1>TV <span>Online</span></h1>
+      <h1><span>i9</span>tv</h1>
     </div>
     <div class="categories-section">
       <div class="section-title">Categorias</div>
