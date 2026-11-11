@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>i9tv</title>
+<title>TV Online</title>
 <style>
   :root{
     --bg:#080a10;
@@ -181,6 +181,7 @@
     display: flex;
     flex-direction: column;
     transition: 0.3s;
+    position: relative;
   }
 
   .player-frame {
@@ -198,19 +199,19 @@
   }
 
   /* =========================================
-     BOTÕES INVISÍVEIS FINOS (SÓ NO MEIO DA LATERAL)
+     BOTÕES INVISÍVEIS FININHOS (APENAS 20PX)
      ========================================= */
   .edge-tap {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    height: 80px;    /* Altura pequena no meio */
-    width: 20px;     /* Metade da largura anterior */
-    z-index: 999;    /* Fica sempre acima do player */
+    height: 120px;   /* Altura do clique */
+    width: 20px;     /* Super fino, do tamanho de um dedo */
+    z-index: 999;    /* Acima do player */
     cursor: pointer;
     background: transparent;
     border-radius: 4px;
-    touch-action: none;
+    touch-action: none; /* Melhora a resposta no celular */
   }
   .edge-tap.left { left: 0; }
   .edge-tap.right { right: 0; }
@@ -220,7 +221,7 @@
   }
 
   /* =========================================
-     ESTILOS DE TELA CHEIA CUSTOMIZADA
+     ESTILOS DE TELA CHEIA (BARRA FLUTUANTE)
      ========================================= */
   .player-wrapper:fullscreen {
     max-width: 100%;
@@ -230,7 +231,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 0;
   }
   .player-wrapper:fullscreen .player-frame {
     height: 100%;
@@ -238,8 +238,17 @@
     aspect-ratio: auto;
     border-radius: 0;
   }
+  /* A barra fica flutuando no fundo em vez de sumir */
   .player-wrapper:fullscreen .player-bar {
-    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(18, 23, 36, 0.85); /* Fundo semi-transparente */
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 0;
+    z-index: 1000;
   }
 
   .player-bar {
@@ -251,6 +260,7 @@
     border-radius: 0 0 12px 12px;
     border: 1px solid var(--line);
     border-top: none;
+    transition: 0.3s;
   }
 
   .nav-btn {
@@ -304,11 +314,7 @@
     .ch-logo-fallback { width: 38px; height: 38px; font-size: 12px; }
     .ch-name { font-size: 9px; }
 
-    /* Ainda mais fino no celular (15px) */
-    .edge-tap {
-      width: 15px; 
-      height: 60px;
-    } 
+    .edge-tap { width: 15px; } 
   }
 </style>
 </head>
@@ -340,7 +346,7 @@
         <div class="edge-tap right" id="tapNext" title="Próximo Canal"></div>
       </div>
       
-      <div class="player-bar">
+      <div class="player-bar" id="playerBar">
         <button class="nav-btn" id="prevBtn" title="Canal Anterior">−</button>
         <div class="now-playing">
           <span class="now-cat" id="nowCat">...</span>
@@ -602,6 +608,17 @@ fsBtn.onclick = () => {
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   }
 };
+
+// Muda o ícone do botão quando entra/sai da tela cheia
+document.addEventListener('fullscreenchange', () => {
+  if (document.fullscreenElement) {
+    fsBtn.innerHTML = '✖';
+    fsBtn.title = "Sair da Tela Cheia";
+  } else {
+    fsBtn.innerHTML = '⛶';
+    fsBtn.title = "Tela Cheia";
+  }
+});
 
 // Gesto de Swipe
 let touchStartX = 0;
