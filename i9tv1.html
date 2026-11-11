@@ -180,6 +180,7 @@
     max-width: 1100px;
     display: flex;
     flex-direction: column;
+    transition: 0.3s;
   }
 
   .player-frame {
@@ -197,23 +198,48 @@
   }
 
   /* =========================================
-     BOTÕES INVISÍVEIS FININHOS NAS LATERAIS
+     BOTÕES INVISÍVEIS FINOS (SÓ NO MEIO DA LATERAL)
      ========================================= */
   .edge-tap {
     position: absolute;
-    top: 25%;       /* Fica só no meio, não cobre o topo (volume) */
-    bottom: 25%;    /* Não cobre a barra de progresso (embaixo) */
-    width: 40px;    /* Bem fininho, apenas uma tira na borda */
-    z-index: 10;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 80px;    /* Altura pequena no meio */
+    width: 20px;     /* Metade da largura anterior */
+    z-index: 999;    /* Fica sempre acima do player */
     cursor: pointer;
     background: transparent;
-    transition: background 0.1s;
+    border-radius: 4px;
+    touch-action: none;
   }
   .edge-tap.left { left: 0; }
   .edge-tap.right { right: 0; }
   
   .edge-tap:active {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* =========================================
+     ESTILOS DE TELA CHEIA CUSTOMIZADA
+     ========================================= */
+  .player-wrapper:fullscreen {
+    max-width: 100%;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0;
+  }
+  .player-wrapper:fullscreen .player-frame {
+    height: 100%;
+    width: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+  .player-wrapper:fullscreen .player-bar {
+    display: none;
   }
 
   .player-bar {
@@ -278,8 +304,11 @@
     .ch-logo-fallback { width: 38px; height: 38px; font-size: 12px; }
     .ch-name { font-size: 9px; }
 
-    /* No celular, deixa a tira ainda mais fina */
-    .edge-tap { width: 30px; } 
+    /* Ainda mais fino no celular (15px) */
+    .edge-tap {
+      width: 15px; 
+      height: 60px;
+    } 
   }
 </style>
 </head>
@@ -563,6 +592,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") prevChannel();
 });
 
+// Tela cheia (Customizada para o playerWrapper)
 fsBtn.onclick = () => {
   if (!document.fullscreenElement) {
     if (playerWrapper.requestFullscreen) playerWrapper.requestFullscreen();
@@ -573,6 +603,7 @@ fsBtn.onclick = () => {
   }
 };
 
+// Gesto de Swipe
 let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
