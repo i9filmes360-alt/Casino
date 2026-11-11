@@ -25,7 +25,6 @@
     background: var(--bg);
   }
 
-  /* ====== LAYOUT PADRÃO (PC) ====== */
   .layout {
     display: flex;
     height: 100vh;
@@ -190,6 +189,7 @@
     border-radius: 12px 12px 0 0;
     overflow: hidden;
     box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+    position: relative;
   }
 
   .player-frame iframe {
@@ -232,12 +232,9 @@
     padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
   }
 
-  /* RESPONSIVIDADE */
   @media (max-width: 850px) {
     .layout { flex-direction: column; }
-    .main-content {
-      order: 1; padding: 10px; flex: none; background: var(--bg);
-    }
+    .main-content { order: 1; padding: 10px; flex: none; background: var(--bg); }
     .player-wrapper { max-width: 100%; }
     .player-bar { padding: 8px 12px; }
     .nav-btn { width: 40px; height: 40px; font-size: 20px; }
@@ -245,27 +242,17 @@
     .now-playing .now-cat { font-size: 10px; }
     .counter { display: none; }
 
-    .sidebar {
-      order: 2; width: 100%; flex: 1;
-      border-right: none; border-top: 1px solid var(--line);
-      overflow: hidden;
-    }
+    .sidebar { order: 2; width: 100%; flex: 1; border-right: none; border-top: 1px solid var(--line); overflow: hidden; }
     .brand { display: none; }
     .categories-section { max-height: none; border-bottom: none; }
     .section-title { display: none; }
 
-    .tabs {
-      flex-direction: row; overflow-x: auto; overflow-y: hidden;
-      padding: 10px; gap: 8px; border-bottom: 1px solid var(--line);
-    }
+    .tabs { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 10px; gap: 8px; border-bottom: 1px solid var(--line); }
     .tabs::-webkit-scrollbar { display: none; }
     .tab { white-space: nowrap; padding: 8px 16px; border-radius: 20px; font-size: 13px; }
 
     .channels-section { flex: 1; overflow: hidden; }
-    .channels-container {
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      padding: 10px; gap: 8px;
-    }
+    .channels-container { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); padding: 10px; gap: 8px; }
     .ch-logo-wrapper { width: 38px; height: 38px; padding: 3px; }
     .ch-logo-fallback { width: 38px; height: 38px; font-size: 12px; }
     .ch-name { font-size: 9px; }
@@ -293,13 +280,7 @@
   <main class="main-content">
     <div class="player-wrapper">
       <div class="player-frame">
-        <!-- Sandbox removido para o player voltar a funcionar -->
-        <iframe id="player" 
-                src="about:blank" 
-                allowfullscreen 
-                allow="autoplay; encrypted-media; picture-in-picture" 
-                referrerpolicy="no-referrer">
-        </iframe>
+        <iframe id="player" src="about:blank" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="no-referrer"></iframe>
       </div>
       <div class="player-bar">
         <button class="nav-btn" id="prevBtn" title="Canal Anterior">−</button>
@@ -314,6 +295,83 @@
   </main>
 </div>
 
+<!-- SISTEMA DE BLOQUEIO (QBet, Amazon, Tigrinho) -->
+<script>
+(function(){
+  if (window.__adblock_injected) return;
+  window.__adblock_injected = true;
+
+  var adWords = [
+    'bet', 'cassino', 'casino', 'blaze', 'popads', 'propeller', 'adsterra', 
+    'exoclick', 'doubleclick', 'traffic', 'histats', 'affiliat', 'redirect', 
+    'track', 'chatango', 'tigrinho', 'amazon-adsystem', 'amazon', 'adsystem',
+    'qbet', 'q-bet', 'betano', 'sportingbet', 'vaidebet'
+  ];
+
+  try {
+    var _safeWin = {
+      focus: function(){}, blur: function(){}, close: function(){}, closed: false,
+      document: { write: function(){}, location: {} }, location: { href: '' }
+    };
+    var _origOpen = window.open;
+    window.open = function(url, target, features) {
+      if (!url || url === 'about:blank') return _safeWin;
+      var u = String(url).toLowerCase();
+      for (var i = 0; i < adWords.length; i++) {
+        if (u.indexOf(adWords[i]) !== -1) {
+          console.warn("AdBlock: Popup bloqueado -> " + u);
+          return _safeWin;
+        }
+      }
+      try { if (typeof _origOpen === 'function') return _origOpen.apply(window, arguments); } catch(e) {}
+      return _safeWin;
+    };
+  } catch (e) {}
+
+  window.addEventListener('beforeunload', function (e) {
+    e.preventDefault();
+    e.returnValue = 'Um anúncio tentou redirecionar você. Deseja sair?';
+    return e.returnValue;
+  });
+
+  try {
+    window._ydUsuarioPediuFs = false;
+    document.addEventListener('click', function(e) {
+      try {
+        var t = e.target;
+        var btn = t ? (t.closest ? t.closest('.vjs-fullscreen-control, .ytp-fullscreen-button, [title*="Fullscreen" i], [title*="fullscreen" i], [title*="Tela cheia" i], [aria-label*="Tela cheia" i], [aria-label*="Fullscreen" i]') : null) : null;
+        if (btn) {
+          window._ydUsuarioPediuFs = true;
+          setTimeout(function(){ window._ydUsuarioPediuFs = false; }, 1500);
+        }
+      } catch(err) {}
+    }, true);
+
+    var _origReq = Element.prototype.requestFullscreen || Element.prototype.webkitRequestFullscreen;
+    function interceptarReqFs() {
+      if (!window._ydUsuarioPediuFs) return Promise.resolve();
+      window._ydUsuarioPediuFs = false;
+      if (_origReq) return _origReq.apply(this, arguments);
+      return Promise.resolve();
+    }
+    if (Element.prototype.requestFullscreen) Element.prototype.requestFullscreen = interceptarReqFs;
+    if (Element.prototype.webkitRequestFullscreen) Element.prototype.webkitRequestFullscreen = interceptarReqFs;
+  } catch(e) {}
+
+  function removerOverlaysFantasmas() {
+    try {
+      var badElements = document.querySelectorAll('[data-rc-player-gesture], button[data-rc-player-gesture], [class*="rc-player-gesture"], .ad-overlay, [class*="floating-ad"], [class*="popunder"], [id*="popunder"], video[title="Advertisement"]');
+      for (var i = 0; i < badElements.length; i++) {
+        badElements[i].remove();
+      }
+    } catch (e) {}
+  }
+  removerOverlaysFantasmas();
+  setInterval(removerOverlaysFantasmas, 300);
+})();
+</script>
+
+<!-- LÓGICA DO APLICATIVO -->
 <script>
 const CATEGORIES = [
   {
@@ -361,6 +419,7 @@ const CATEGORIES = [
   {
     name: "Canais Abertos",
     channels: [
+      ["globorj","TV Globo", "globo"], 
       ["record","Record", "record"], ["redetv","RedeTV!", "redetv"], ["saborearte","Sabor & Arte", "sabor-e-arte"],
       ["sbt","SBT", "sbt"], ["aparecida","TV Aparecida", "tv-aparecida"], ["tvbrasil","TV Brasil", "tv-brasil"],
       ["tvcultura","TV Cultura", "tv-cultura"]
@@ -438,7 +497,6 @@ function playChannel(catIdx, chanIdx) {
   });
 
   channelSectionTitle.textContent = `Canais: ${cat.name}`;
-
   renderChannels(catIdx, ch[0]);
 }
 
@@ -457,10 +515,7 @@ function renderChannels(catIdx, activeSlug) {
 
     card.innerHTML = `
       <div class="ch-logo-wrapper">
-        <img src="${logoUrl}" 
-             class="ch-logo-img" 
-             alt="${name}" 
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+        <img src="${logoUrl}" class="ch-logo-img" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
         <div class="ch-logo-fallback" style="--h:${h};">${initials}</div>
       </div>
       <div class="ch-name">${name}</div>
