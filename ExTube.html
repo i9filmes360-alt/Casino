@@ -1,124 +1,20 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extrator de URL Limpa - YouTube (i9tv)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkBg: '#121212',
-                        cardBg: '#1E1E1E',
-                        accentRed: '#FF0000',
-                    }
-                }
-            }
-        }
-    </script>
+  <meta charset="utf-8">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Player</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; }
+    iframe { width: 100%; height: 100%; border: 0; }
+  </style>
 </head>
-<body class="bg-darkBg text-gray-100 min-h-screen flex flex-col items-center justify-start p-4">
-
-    <div class="w-full max-w-4xl bg-cardBg border border-neutral-800 rounded-xl p-6 shadow-2xl space-y-6">
-        <h1 class="text-xl font-bold tracking-wide text-white flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full bg-red-600 inline-block animate-pulse"></span>
-            Extrator de URL Limpa para o i9tv (YouTube)
-        </h1>
-
-        <!-- Input URL -->
-        <div class="space-y-2">
-            <label class="text-xs font-semibold uppercase text-neutral-400 tracking-wider">URL do YouTube ou ID do Vídeo</label>
-            <div class="flex gap-2">
-                <input type="text" id="urlInput" placeholder="Ex: https://www.youtube.com/watch?v=XXXXX ou https://youtu.be/XXXXX" 
-                    class="flex-1 bg-neutral-900 border border-neutral-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition"
-                    oninput="processYouTubeUrl()">
-                <button onclick="clearInput()" class="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-4 py-3 rounded-lg text-sm transition">Limpar</button>
-            </div>
-        </div>
-
-        <!-- URL Limpa de Embed -->
-        <div class="space-y-2">
-            <label class="text-xs font-semibold uppercase text-neutral-400 tracking-wider">URL Limpa Pronta para o Input do Player</label>
-            <div class="flex gap-2">
-                <input type="text" id="embedOutput" readonly 
-                    class="flex-1 bg-neutral-900 border border-neutral-700 rounded-lg px-4 py-2 text-sm font-mono text-neutral-300 focus:outline-none">
-                <button onclick="copyEmbedLink()" class="bg-red-600 hover:bg-red-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition shadow-lg shadow-red-900/20">Copiar URL</button>
-            </div>
-        </div>
-
-        <!-- Preview do Player -->
-        <div class="space-y-2">
-            <div class="flex justify-between items-center">
-                <label class="text-xs font-semibold uppercase text-neutral-400 tracking-wider">Preview do Player</label>
-                <a id="fullScreenBtn" href="#" target="_blank" class="text-xs text-red-400 hover:text-red-300 transition hidden">↗ Abrir em Tela Cheia</a>
-            </div>
-            <div id="playerContainer" class="w-full aspect-video bg-neutral-950 rounded-xl overflow-hidden border border-neutral-800 flex items-center justify-center text-neutral-600 text-sm">
-                Cole um link do YouTube acima para gerar a URL limpa
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function extractVideoId(url) {
-            if (!url) return '';
-            url = url.trim();
-            if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
-                return url;
-            }
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        function processYouTubeUrl() {
-            const input = document.getElementById('urlInput').value;
-            const output = document.getElementById('embedOutput');
-            const container = document.getElementById('playerContainer');
-            const fullScreenBtn = document.getElementById('fullScreenBtn');
-
-            const videoId = extractVideoId(input);
-
-            if (!videoId) {
-                output.value = '';
-                container.innerHTML = 'Cole um link válido do YouTube';
-                fullScreenBtn.classList.add('hidden');
-                return;
-            }
-
-            // Gera a URL limpa otimizada para aceitar em inputs de URL
-            const cleanUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
-
-            output.value = cleanUrl;
-            fullScreenBtn.href = cleanUrl;
-            fullScreenBtn.classList.remove('hidden');
-
-            // Renderiza o preview no iframe
-            container.innerHTML = `
-                <iframe src="${cleanUrl}" 
-                    class="w-full h-full border-0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen>
-                </iframe>
-            `;
-        }
-
-        function copyEmbedLink() {
-            const output = document.getElementById('embedOutput');
-            if (!output.value) return;
-            navigator.clipboard.writeText(output.value);
-            event.target.textContent = 'Copiado!';
-            setTimeout(() => { event.target.textContent = 'Copiar URL'; }, 2000);
-        }
-
-        function clearInput() {
-            document.getElementById('urlInput').value = '';
-            document.getElementById('embedOutput').value = '';
-            document.getElementById('playerContainer').innerHTML = 'Cole um link do YouTube acima para gerar a URL limpa';
-            document.getElementById('fullScreenBtn').classList.add('hidden');
-        }
-    </script>
+<body>
+  <iframe
+    src="https://www.youtube.com/embed/1Bv8VKiuTDw?autoplay=1&rel=0&modestbranding=1"
+    allow="autoplay; encrypted-media; fullscreen"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen>
+  </iframe>
 </body>
 </html>
