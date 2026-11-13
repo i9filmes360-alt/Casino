@@ -15,6 +15,7 @@
     --muted:#8b95ad;
     --accent:#7c5cff;
     --accent2:#00d8b4;
+    --danger:#ff4757;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,8 +48,9 @@
     border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
   }
+  .brand-title { display: flex; align-items: center; gap: 10px; }
   .brand .dot {
     width: 10px; height: 10px; border-radius: 50%;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
@@ -58,6 +60,27 @@
   .brand h1 span {
     background: linear-gradient(90deg, var(--accent), var(--accent2));
     -webkit-background-clip: text; color: transparent;
+  }
+
+  /* BOTÃO ADICIONAR CANAL */
+  .btn-add-channel {
+    background: rgba(124,92,255,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(124,92,255,0.3);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-add-channel:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: transparent;
   }
 
   .categories-section {
@@ -131,7 +154,7 @@
     display: flex; flex-direction: column; align-items: center; gap: 6px;
     padding: 10px 6px; border-radius: 10px; text-align: center;
     background: rgba(255,255,255,0.03); border: 1px solid var(--line);
-    cursor: pointer; transition: 0.2s;
+    cursor: pointer; transition: 0.2s; position: relative;
   }
   .ch-card:hover {
     background: rgba(255,255,255,0.06); border-color: rgba(124,92,255,0.5); transform: translateY(-2px);
@@ -139,6 +162,21 @@
   .ch-card.active {
     border-color: var(--accent2); background: rgba(0, 216, 180, 0.1);
   }
+
+  /* BOTÕES DE AÇÃO NO CARD (EDITAR E APAGAR) */
+  .ch-card-actions {
+    position: absolute; top: 4px; right: 4px;
+    display: none; gap: 2px; z-index: 10;
+  }
+  .ch-card:hover .ch-card-actions { display: flex; }
+  
+  .btn-action {
+    background: rgba(0,0,0,0.7); color: #fff;
+    border: none; border-radius: 4px; padding: 3px 5px;
+    font-size: 10px; cursor: pointer; transition: 0.2s;
+  }
+  .btn-action:hover { background: var(--accent); }
+  .btn-action.delete:hover { background: var(--danger); }
 
   .ch-logo-wrapper {
     width: 44px; height: 44px;
@@ -283,6 +321,40 @@
     padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
   }
 
+  /* =========================================
+     ESTILOS DOS MODAIS (ADICIONAR E EDITAR)
+     ========================================= */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px); z-index: 10000;
+    display: none; justify-content: center; align-items: center;
+  }
+  .modal-overlay.show { display: flex; }
+  
+  .modal-box {
+    background: #121724; border: 1px solid var(--line);
+    border-radius: 12px; padding: 24px; width: 100%; max-width: 420px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal-box h2 { margin-bottom: 16px; font-size: 18px; color: var(--accent); }
+  .modal-box label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; margin-top: 10px; }
+  .modal-box input, .modal-box select {
+    width: 100%; padding: 10px; border-radius: 8px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--line);
+    color: #fff; font-size: 14px; outline: none; margin-bottom: 10px;
+  }
+  .modal-box input:focus { border-color: var(--accent); }
+  
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+  .btn-modal { padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
+  .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
+  .btn-cancel:hover { background: rgba(255,255,255,0.2); }
+  .btn-confirm { background: var(--accent); color: #fff; }
+  .btn-confirm:hover { background: #5b3cff; }
+
   @media (max-width: 850px) {
     .layout { flex-direction: column; }
     .main-content { order: 1; padding: 10px; flex: none; background: var(--bg); }
@@ -308,7 +380,8 @@
     .ch-logo-fallback { width: 38px; height: 38px; font-size: 12px; }
     .ch-name { font-size: 9px; }
 
-    .edge-tap { width: 15px; } 
+    .edge-tap { width: 15px; }
+    .ch-card-actions { display: flex; opacity: 0.7; } /* Mostra no celular também */
   }
 </style>
 </head>
@@ -317,8 +390,11 @@
 <div class="layout">
   <aside class="sidebar">
     <div class="brand">
-      <div class="dot"></div>
-      <h1><span>i9</span>tv</h1>
+      <div class="brand-title">
+        <div class="dot"></div>
+        <h1><span>i9</span>tv</h1>
+      </div>
+      <button class="btn-add-channel" onclick="abrirSenha('add')">➕ Inserir Canal</button>
     </div>
     <div class="categories-section">
       <div class="section-title">Categorias</div>
@@ -352,6 +428,48 @@
       </div>
     </div>
   </main>
+</div>
+
+<!-- MODAL DE SENHA -->
+<div class="modal-overlay" id="modalSenha">
+  <div class="modal-box">
+    <h2>🔒 Acesso Restrito</h2>
+    <label>Digite a senha para continuar:</label>
+    <input type="password" id="inputSenha" placeholder="Senha..." onkeypress="if(event.key==='Enter') verificarSenha()">
+    <div class="modal-actions">
+      <button class="btn-modal btn-cancel" onclick="fecharSenha()">Cancelar</button>
+      <button class="btn-modal btn-confirm" onclick="verificarSenha()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE ADICIONAR / EDITAR CANAL -->
+<div class="modal-overlay" id="modalCanal">
+  <div class="modal-box">
+    <h2 id="modalCanalTitle">📺 Adicionar Novo Canal</h2>
+    
+    <!-- Campos ocultos para modo de edição -->
+    <input type="hidden" id="editCatIdx" value="-1">
+    <input type="hidden" id="editChanIdx" value="-1">
+
+    <label>Nome do Canal</label>
+    <input type="text" id="inputNome" placeholder="Ex: Meu Canal Favorito">
+    
+    <label>URL do Stream (.m3u8 ou iframe)</label>
+    <input type="text" id="inputUrl" placeholder="https://...">
+    
+    <label>Categoria</label>
+    <input type="text" id="inputCategoria" list="listaCategorias" placeholder="Digite ou selecione...">
+    <datalist id="listaCategorias"></datalist>
+    
+    <label>URL da Logo</label>
+    <input type="text" id="inputLogo" placeholder="https://.../logo.png">
+    
+    <div class="modal-actions">
+      <button class="btn-modal btn-cancel" onclick="fecharCanal()">Cancelar</button>
+      <button class="btn-modal btn-confirm" onclick="salvarCanal()">Salvar Canal</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -406,11 +524,179 @@
 </script>
 
 <script>
-const CATEGORIES = [
+// ==========================================
+// SISTEMA DE ADICIONAR / EDITAR CANAIS
+// ==========================================
+const SENHA_CORRETA = "bpa6tfor";
+let acaoPendente = "add"; // 'add' ou 'edit'
+let canalParaEditar = { catIdx: -1, chanIdx: -1 };
+
+function abrirSenha(acao) {
+  acaoPendente = acao;
+  document.getElementById('modalSenha').classList.add('show');
+  document.getElementById('inputSenha').value = '';
+  setTimeout(() => document.getElementById('inputSenha').focus(), 100);
+}
+
+function fecharSenha() {
+  document.getElementById('modalSenha').classList.remove('show');
+}
+
+function verificarSenha() {
+  const senha = document.getElementById('inputSenha').value;
+  if (senha === SENHA_CORRETA) {
+    fecharSenha();
+    if (acaoPendente === 'add') {
+      abrirModalCanal();
+    } else {
+      abrirModalEdicao();
+    }
+  } else {
+    alert("Senha incorreta!");
+  }
+}
+
+function abrirSenhaEdicao(catIdx, chanIdx) {
+  canalParaEditar = { catIdx, chanIdx };
+  abrirSenha('edit');
+}
+
+// Preenche o modal para adicionar
+function abrirModalCanal() {
+  document.getElementById('modalCanalTitle').textContent = "📺 Adicionar Novo Canal";
+  document.getElementById('editCatIdx').value = "-1";
+  document.getElementById('editChanIdx').value = "-1";
+  
+  // Preencher categorias no datalist
+  const datalist = document.getElementById('listaCategorias');
+  datalist.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat.name;
+    datalist.appendChild(opt);
+  });
+
+  document.getElementById('modalCanal').classList.add('show');
+  document.getElementById('inputNome').value = '';
+  document.getElementById('inputUrl').value = '';
+  document.getElementById('inputCategoria').value = '';
+  document.getElementById('inputLogo').value = '';
+  setTimeout(() => document.getElementById('inputNome').focus(), 100);
+}
+
+// Preenche o modal para edição
+function abrirModalEdicao() {
+  const { catIdx, chanIdx } = canalParaEditar;
+  const cat = CATEGORIES[catIdx];
+  const ch = cat.channels[chanIdx];
+
+  document.getElementById('modalCanalTitle').textContent = "✏️ Editar Canal";
+  document.getElementById('editCatIdx').value = catIdx;
+  document.getElementById('editChanIdx').value = chanIdx;
+
+  // Preencher categorias no datalist
+  const datalist = document.getElementById('listaCategorias');
+  datalist.innerHTML = '';
+  CATEGORIES.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    datalist.appendChild(opt);
+  });
+
+  document.getElementById('modalCanal').classList.add('show');
+  document.getElementById('inputNome').value = ch[1];
+  document.getElementById('inputUrl').value = ch[0];
+  document.getElementById('inputCategoria').value = cat.name;
+  document.getElementById('inputLogo').value = ch[2] || '';
+}
+
+function fecharCanal() {
+  document.getElementById('modalCanal').classList.remove('show');
+}
+
+function salvarCanal() {
+  const nome = document.getElementById('inputNome').value.trim();
+  const url = document.getElementById('inputUrl').value.trim();
+  const categoria = document.getElementById('inputCategoria').value.trim();
+  const logo = document.getElementById('inputLogo').value.trim();
+  const editCatIdx = parseInt(document.getElementById('editCatIdx').value);
+  const editChanIdx = parseInt(document.getElementById('editChanIdx').value);
+
+  if (!nome || !url || !categoria) {
+    alert("Por favor, preencha o Nome, a URL e a Categoria.");
+    return;
+  }
+
+  const logoFinal = logo || "https://i.imgur.com/eXwJ5wK.png"; // Logo padrão se ficar em branco
+
+  if (editCatIdx !== -1 && editChanIdx !== -1) {
+    // MODO EDIÇÃO
+    const catAntiga = CATEGORIES[editCatIdx];
+    const chanAntigo = catAntiga.channels[editChanIdx];
+    
+    // Verifica se mudou de categoria
+    if (catAntiga.name.toLowerCase() === categoria.toLowerCase()) {
+      // Mesma categoria: só atualiza os dados
+      catAntiga.channels[editChanIdx] = [url, nome, logoFinal];
+    } else {
+      // Mudou de categoria: remove da antiga e adiciona na nova
+      catAntiga.channels.splice(editChanIdx, 1);
+      
+      let novaCatIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
+      if (novaCatIndex === -1) {
+        CATEGORIES.push({ name: categoria, channels: [] });
+        novaCatIndex = CATEGORIES.length - 1;
+      }
+      CATEGORIES[novaCatIndex].channels.push([url, nome, logoFinal]);
+    }
+    alert("Canal atualizado com sucesso!");
+  } else {
+    // MODO ADIÇÃO
+    let catIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
+    if (catIndex === -1) {
+      CATEGORIES.push({ name: categoria, channels: [] });
+      catIndex = CATEGORIES.length - 1;
+    }
+    CATEGORIES[catIndex].channels.push([url, nome, logoFinal]);
+    alert("Canal adicionado com sucesso!");
+  }
+
+  salvarCanaisLocais();
+  rebuildALL();
+  renderTabs();
+  
+  // Vai para a categoria onde o canal foi salvo
+  let finalCatIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
+  playChannel(finalCatIndex, CATEGORIES[finalCatIndex].channels.length - 1);
+  
+  fecharCanal();
+}
+
+function salvarCanaisLocais() {
+  localStorage.setItem('i9tv_canais_custom', JSON.stringify(CATEGORIES));
+}
+
+function removerCanal(event, catIdx, chanIdx) {
+  event.stopPropagation();
+  if (confirm("Tem certeza que deseja remover este canal?")) {
+    CATEGORIES[catIdx].channels.splice(chanIdx, 1);
+    salvarCanaisLocais();
+    rebuildALL();
+    renderTabs();
+    
+    if (currentCatIndex === catIdx) {
+      playChannel(catIdx, 0);
+    }
+  }
+}
+
+// ==========================================
+// BASE DE DADOS INICIAL
+// ==========================================
+let CATEGORIES = [
   {
     name: "Filmes (Google Drive)",
     channels: [
-      // NOVO FILME ADICIONADO AQUI
       ["https://drive.google.com/file/d/1cRRbvf6SMEGoHQvnlvdVov8wO84b__X7/preview", "Guardiões da Galáxia Vol. 2 (2017)", "https://i.imgur.com/eXwJ5wK.png"],
       ["https://drive.google.com/file/d/0ByYoqq6J6r_COE9aM1BIWVZFbFE/preview?resourcekey=0-0OtDMQJLnvmzXrjTQyYjOg", "A Rede", "https://i.imgur.com/eXwJ5wK.png"],
       ["https://drive.google.com/file/d/1ZpWi7tTkJmhYP6ylgGVMozpNh56z2GYq/preview", "A Família Busca Pé", "https://i.imgur.com/eXwJ5wK.png"],
@@ -491,30 +777,68 @@ const CATEGORIES = [
       ["animalplanet","Animal Planet", "animal-planet"], ["discoverychannel","Discovery Channel", "discovery-channel"],
       ["discoveryscience","Discovery Science", "discovery-science"], ["discoverytheater","Discovery Theater", "discovery-theater"],
       ["discoveryturbo","Discovery Turbo", "discovery-turbo"], ["discoveryworld","Discovery World", "discovery-world"],
-      ["futura","Futura", "futura"], ["history","History", "history"], ["history2","History 2", "history-2"]
+      ["history","History", "history"], ["history2","History 2", "history-2"],
+      ["https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8", "Futura", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Futura_logo_2019.png/512px-Futura_logo_2019.png"]
     ]
   },
   {
-    name: "Canais Abertos",
+    name: "Parabólica Digital",
     channels: [
       ["globorj","TV Globo", "globo"],
+      ["https://gerenciar.vivatele.com:443/live/viva_padrao/viva2384/13.m3u8", "Record", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/RecordTV_logo_2016.svg/512px-RecordTV_logo_2016.svg.png"],
       ["https://stmv1.srvstm.com/sistema7933/sistema7933/playlist.m3u8", "ISTV", "https://istv.com.br/wp-content/uploads/2026/02/ISTV_COLOR_2024.jpg"],
-      ["record","Record", "record"], ["redetv","RedeTV!", "redetv"], ["saborearte","Sabor & Arte", "sabor-e-arte"],
-      ["sbt","SBT", "sbt"], ["aparecida","TV Aparecida", "tv-aparecida"], ["tvbrasil","TV Brasil", "tv-brasil"],
-      ["tvcultura","TV Cultura", "tv-cultura"],
+      ["redetv","RedeTV!", "redetv"], ["saborearte","Sabor & Arte", "sabor-e-arte"],
+      ["sbt","SBT", "sbt"], ["aparecida","TV Aparecida", "tv-aparecida"],
+      ["https://tvbrasil-stream.ebc.com.br/index.m3u8", "TV Brasil", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/TV_Brasil_logo_2019.svg/512px-TV_Brasil_logo_2019.svg.png"],
+      ["https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8", "TV Cultura", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/TV_Cultura_logo.svg/512px-TV_Cultura_logo.svg.png"],
       ["https://video24.mais.uol.com.br/live/6146.m3u8", "Canal UOL", "https://conteudo.imguol.com.br/c/play/logo_canaluol_2024.svg"],
       ["https://play.redecinturaoverde.com.br/playlist.m3u8", "Cinturão Verde", "https://eswqkrogupaisirwcsys.supabase.co/storage/v1/object/public/mbc-media/canais/1775688612576-u0628igjimf.png"],
       ["https://5a57bda70564a.streamlock.net/conexaotv/conexaotv.sdp/playlist.m3u8", "Conexão TV", "https://i.imgur.com/CJ9SPsZ.png"],
       ["https://5c483b9d1019c.streamlock.net/falalitoraltv/falalitoraltv/playlist.m3u8", "Fala Litoral", "https://i.imgur.com/NF6PL8O.png"],
       ["https://play.mbcbrasil.tv.br/playlist.m3u8", "MBC Brasil TV", "https://eswqkrogupaisirwcsys.supabase.co/storage/v1/object/public/mbc-media/canais/1775702325773-d10vtu076za.png"],
       ["http://wz3.dnip.com.br:1935/novaeratv/novaeratv.sdp/live.m3u8", "Nova Era TV", "https://i.imgur.com/IK3F9Uq.png"],
-      ["https://cdn-sp2.satlabscloud.com.br/RBS_HD/index.m3u8?token=Mw3YKkujzIi9hYQJ6kAQjQvly2VdBNuGPjHOq", "Rede Globo (RBS)", "https://i.imgur.com/O02TF2r.png"],
       ["https://5c483b9d1019c.streamlock.net/8186/8186/playlist.m3u8", "TV Clube", "https://i.imgur.com/CpXjcyE.png"],
       ["https://5b7f3c45ab7c2.streamlock.net/8008/smil:8008.smil/playlist.m3u8?DVR=", "TV Comunitária", "https://i.imgur.com/uxefHY3.png"],
       ["https://5cf4a2c2512a2.streamlock.net/tvmaismarica/tvmaismarica/playlist.m3u8", "TV Mais Maricá", "https://i.imgur.com/lgCRX7q.png"],
       ["https://5a2b083e9f360.streamlock.net/tvpantanal/tvpantanal.sdp/playlist.m3u8", "TV Pantanal MS", "https://i.imgur.com/0FOmktl.png"],
       ["https://5a57bda70564a.streamlock.net/tvpasso/tvpasso.sdp/playlist.m3u8", "TV Passo Fundo", "https://i.imgur.com/QFE6TiV.png"],
-      ["https://5cf4a2c2512a2.streamlock.net/tvsuldeminas/tvsuldeminas/playlist.m3u8", "TV Sul de Minas", "https://i.imgur.com/hPh8cxK.png"]
+      ["https://5cf4a2c2512a2.streamlock.net/tvsuldeminas/tvsuldeminas/playlist.m3u8", "TV Sul de Minas", "https://i.imgur.com/hPh8cxK.png"],
+      ["https://stmv5.samcast.com.br/puctvgoias/puctvgoias/playlist.m3u8", "PUC TV Goiás", "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/PUC_TV_Goi%C3%A1s_logo.png/512px-PUC_TV_Goi%C3%A1s_logo.png"],
+      ["http://streaming.procergs.com.br:1935/tve/stve/playlist.m3u8", "TVE RS", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/TVE_RS_logo.png/512px-TVE_RS_logo.png"],
+      ["https://8hzcavccys.zoeweb.tv/redeminas/ngrp:redeminas_all/playlist.m3u8", "Rede Minas", "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Rede_Minas_logo.png/512px-Rede_Minas_logo.png"],
+      ["https://stream3.camara.gov.br/tv1/manifest.m3u8", "TV Câmara", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/TV_C%C3%A2mara_logo.png/512px-TV_C%C3%A2mara_logo.png"],
+      ["https://streaming.almg.gov.br/live/tvalmg.m3u8", "TV ALMG", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/TV_ALMG_logo.png/512px-TV_ALMG_logo.png"],
+      ["https://596639ebdd89b.streamlock.net/tvuniao/tvuniao/playlist.m3u8", "TV União", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/TV_Uni%C3%A3o_logo.png/512px-TV_Uni%C3%A3o_logo.png"],
+      ["https://5f593df7851db.streamlock.net/evangelizar/tv/playlist.m3u8", "TV Evangelizar", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/TV_Evangelizar_logo_2019.png/512px-TV_Evangelizar_logo_2019.png"],
+      ["https://59f2354c05961.streamlock.net:1443/tvtropical/_definst_/tvtropical/playlist.m3u8", "TV Tropical", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/TV_Tropical_logo.png/512px-TV_Tropical_logo.png"],
+      ["http://stream2.ba.gov.br/hls-live/livepkgr/_definst_/irdeb/pgm-1.m3u8", "IRDEB TV", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://617c5175c970b.streamlock.net:4444/tvcinco/live1/playlist.m3u8", "TV Cinco", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://panel.host-live.com:19360/cn247tv/cn247tv.m3u8", "CN247 TV", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://5b7f3c45ab7c2.streamlock.net/arapuan/ngrp:arapuan_all/playlist.m3u8", "TV Arapuã", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://br5093.streamingdevideo.com.br/abc/abc/master.m3u8", "TV ABC", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://tv02.zas.media:1936/redetvparana/redetvparana/playlist.m3u8", "RedeTV! Paraná", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://video02.logicahost.com.br/wtjtvminas/wtjtvminas/playlist.m3u8", "WTJ TV Minas", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://video03.logicahost.com.br/topmixtv/topmixtv/chunklist.m3u8", "Top Mix TV", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://cdn-fundacao-2110.ciclano.io:1443/fundacao-2110/fundacao-2110/playlist.m3u8", "Fundação TV", "https://i.imgur.com/eXwJ5wK.png"],
+      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=5431&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=en&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794421562&id=11709&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=sqRc0PvZoxK3j5hg%2FK2FvHTr2w%2FnWGNLJ%2FGv5InLW6I%3D", "Record News", "record-news"],
+      ["https://dai.google.com/linear/hls/event/1XSOdtQ0SH2G8OEmEfGgjQ/master.m3u8", "SBT News", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_JbcNE6RCucsFU6VM18cY5tIxFKNPziL3VUsUnOB6Hw&s=10"],
+      ["https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8", "Futura", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Futura_logo_2019.png/512px-Futura_logo_2019.png"],
+      ["https://evpp.mm.uol.com.br/geob_band/band/playlist.m3u8", "Band", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Bandeirantes_logo_2018.svg/512px-Bandeirantes_logo_2018.svg.png"],
+      ["http://45.162.64.114/GAZETA/index.m3u8", "TV Gazeta", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/TV_Gazeta_logo.png/512px-TV_Gazeta_logo.png"],
+      ["http://stream2.camara.leg.br:8134/tv1/manifest.m3u8", "TV Câmara", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/TV_C%C3%A2mara_logo.png/512px-TV_C%C3%A2mara_logo.png"],
+      ["https://video-rvd-lmg.rnp.br/live/ocp(t(FfZfeFx3QG4)r(TOqkzw)a(ut273w)p(d(lCo)k(ow4)m(U1zbeMZOcvuVp_PjPC5VeA)n(a(-xL_Aw)s(ye", "TV Escola", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/TV_Escola_logo.png/512px-TV_Escola_logo.png"],
+      ["https://d12e4o88jd8gex.cloudfront.net/out/v1/cea3de0b76ac4e82ab8ee0fd3f17ce12/index_1.m3u8", "Rede Vida", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Rede_Vida_logo.png/512px-Rede_Vida_logo.png"],
+      ["http://cancaonovahls-lh.akamaihd.net:80/i/tvcnpthls_1@112270/master.m3u8", "Canção Nova", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Can%C3%A7%C3%A3o_Nova_logo.png/512px-Can%C3%A7%C3%A3o_Nova_logo.png"],
+      ["https://video09.logicahost.com.br/paieterno/paieterno/chunklist_w1610240856.m3u8", "TV Pai Eterno", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/TV_Pai_Eterno_logo.png/512px-TV_Pai_Eterno_logo.png"],
+      ["http://45.233.58.154:8000/play/a01q/index.m3u8", "CNT", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/CNT_logo.png/512px-CNT_logo.png"],
+      ["https://isaocorp.cloudecast.com/ngt/index.m3u8?ManoTV", "NGT", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/NGT_logo.png/512px-NGT_logo.png"],
+      ["https://stream.ecast.com.br/rit-tv/index.m3u8", "RIT", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/RIT_logo.png/512px-RIT_logo.png"],
+      ["http://187.120.222.12:8000/play/BoaVontade/index.m3u8", "Boa Vontade TV", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Boa_Vontade_TV_logo.png/512px-Boa_Vontade_TV_logo.png"],
+      ["https://stream.live.novotempo.com/tv/smil:tvnovotempo.smil/playlist.m3u8", "TV Novo Tempo", "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/TV_Novo_Tempo_logo.png/512px-TV_Novo_Tempo_logo.png"],
+      ["https://cdn.jmvstream.com/w/LVW-9375/LVW9375_6i0wPBCHYc/playlist.m3u8", "Boas Novas", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Boas_Novas_logo.png/512px-Boas_Novas_logo.png"],
+      ["https://cdn.jmvstream.com/w/LVW-8719/LVW8719_AcLVAxWy5J/playlist.m3u8", "Rede Gospel", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Rede_Gospel_logo.png/512px-Rede_Gospel_logo.png"],
+      ["http://257920-lh.akamaihd.net/i/TVSeculo21_hls@145741/master.m3u8", "Rede Século 21", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Rede_S%C3%A9culo_21_logo.png/512px-Rede_S%C3%A9culo_21_logo.png"],
+      ["https://video09.logicahost.com.br/redebrasiloficial/redebrasiloficial/playlist.m3u8", "Rede Brasil", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Rede_Brasil_logo.png/512px-Rede_Brasil_logo.png"]
     ]
   },
   {
@@ -541,6 +865,17 @@ const CATEGORIES = [
   }
 ];
 
+// Carregar canais customizados salvos anteriormente
+const canaisSalvos = localStorage.getItem('i9tv_canais_custom');
+if (canaisSalvos) {
+  try {
+    const parsed = JSON.parse(canaisSalvos);
+    CATEGORIES = parsed;
+  } catch (e) {
+    console.error("Erro ao carregar canais salvos:", e);
+  }
+}
+
 const BASE_URL = "https://rdcanais.org/";
 const LOGO_BASE_URL = "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/brazil/";
 
@@ -559,12 +894,15 @@ const channelSectionTitle = document.getElementById("channelSectionTitle");
 const playerWrapper = document.getElementById("playerWrapper");
 const fsBtn = document.getElementById("fsBtn");
 
-const ALL = [];
-CATEGORIES.forEach((cat, catIdx) => {
-  cat.channels.forEach(([slug, name, logoSlug], chanIdx) => {
-    ALL.push({ slug, name, category: cat.name, catIdx, chanIdx, logoSlug });
+let ALL = [];
+function rebuildALL() {
+  ALL = [];
+  CATEGORIES.forEach((cat, catIdx) => {
+    cat.channels.forEach(([slug, name, logoSlug], chanIdx) => {
+      ALL.push({ slug, name, category: cat.name, catIdx, chanIdx, logoSlug });
+    });
   });
-});
+}
 
 function renderTabs() {
   tabsEl.innerHTML = "";
@@ -578,6 +916,9 @@ function renderTabs() {
 }
 
 function playChannel(catIdx, chanIdx) {
+  if(catIdx < 0 || catIdx >= CATEGORIES.length) return;
+  if(chanIdx < 0 || chanIdx >= CATEGORIES[catIdx].channels.length) return;
+
   currentCatIndex = catIdx;
   currentChanIndex = chanIdx;
   
@@ -653,7 +994,12 @@ function renderChannels(catIdx, activeSlug) {
         logoUrl = LOGO_BASE_URL + logoSlug + "-br.png";
     }
 
+    // Adiciona os botões de Editar (✏️) e Apagar (🗑️)
     card.innerHTML = `
+      <div class="ch-card-actions">
+        <button class="btn-action" onclick="abrirSenhaEdicao(${catIdx}, ${chanIdx})" title="Editar Canal">✏️</button>
+        <button class="btn-action delete" onclick="removerCanal(event, ${catIdx}, ${chanIdx})" title="Apagar Canal">🗑️</button>
+      </div>
       <div class="ch-logo-wrapper">
         <img src="${logoUrl}" class="ch-logo-img" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
         <div class="ch-logo-fallback" style="--h:${h};">${initials}</div>
@@ -661,7 +1007,12 @@ function renderChannels(catIdx, activeSlug) {
       <div class="ch-name">${name}</div>
     `;
     
-    card.onclick = () => playChannel(catIdx, chanIdx);
+    card.onclick = (e) => {
+      // Só toca o canal se não clicou nos botões de ação
+      if(e.target.tagName !== 'BUTTON') {
+        playChannel(catIdx, chanIdx);
+      }
+    };
     channelsContainer.appendChild(card);
   });
 }
@@ -738,6 +1089,8 @@ document.addEventListener('touchend', (e) => {
   }
 }, { passive: true });
 
+// Inicialização
+rebuildALL();
 renderTabs();
 playChannel(0, 0);
 </script>
