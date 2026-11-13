@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Player</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; }
+    iframe { width: 100%; height: 100%; border: 0; }
+  </style>
+</head>
+<body>
+  <iframe id="player"
+    allow="autoplay; encrypted-media; fullscreen"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen></iframe>
+
+  <script>
+    // COLE O ID DO VÍDEO ENTRE AS ASPAS:
+    var ID = "eL-ZT-TacP0";
+
+    document.getElementById("player").src =
+      "https://www.youtube.com/embed/" + ID + "?autoplay=1&rel=0&modestbranding=1";
+  </script>
+</body>
+</html>
