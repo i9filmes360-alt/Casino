@@ -455,7 +455,7 @@
     <label>Nome do Canal</label>
     <input type="text" id="inputNome" placeholder="Ex: Meu Canal Favorito">
     
-    <label>URL do Stream (.m3u8 ou iframe)</label>
+    <label>URL do Stream (.m3u8, .mp4 ou página/iframe)</label>
     <input type="text" id="inputUrl" placeholder="https://...">
     
     <label>Categoria</label>
@@ -691,16 +691,9 @@ function removerCanal(event, catIdx, chanIdx) {
 }
 
 // ==========================================
-// BASE DE DADOS INICIAL (Com Política no topo)
+// BASE DE DADOS INICIAL
 // ==========================================
 let CATEGORIES = [
-  {
-    name: "Política",
-    channels: [
-      ["http://170.83.16.50/TV_SENADO/index.m3u8", "TV Senado", "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/TV_Senado_logo.png/512px-TV_Senado_logo.png"],
-      ["https://stream3.camara.gov.br/tv1/manifest.m3u8", "TV Câmara", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/TV_C%C3%A2mara_logo.png/512px-TV_C%C3%A2mara_logo.png"]
-    ]
-  },
   {
     name: "Filmes (Google Drive)",
     channels: [
@@ -813,6 +806,8 @@ let CATEGORIES = [
       ["https://stmv5.samcast.com.br/puctvgoias/puctvgoias/playlist.m3u8", "PUC TV Goiás", "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/PUC_TV_Goi%C3%A1s_logo.png/512px-PUC_TV_Goi%C3%A1s_logo.png"],
       ["http://streaming.procergs.com.br:1935/tve/stve/playlist.m3u8", "TVE RS", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/TVE_RS_logo.png/512px-TVE_RS_logo.png"],
       ["https://8hzcavccys.zoeweb.tv/redeminas/ngrp:redeminas_all/playlist.m3u8", "Rede Minas", "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Rede_Minas_logo.png/512px-Rede_Minas_logo.png"],
+      ["https://stream3.camara.gov.br/tv1/manifest.m3u8", "TV Câmara", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/TV_C%C3%A2mara_logo.png/512px-TV_C%C3%A2mara_logo.png"],
+      ["https://streaming.almg.gov.br/live/tvalmg.m3u8", "TV ALMG", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/TV_ALMG_logo.png/512px-TV_ALMG_logo.png"],
       ["https://596639ebdd89b.streamlock.net/tvuniao/tvuniao/playlist.m3u8", "TV União", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/TV_Uni%C3%A3o_logo.png/512px-TV_Uni%C3%A3o_logo.png"],
       ["https://5f593df7851db.streamlock.net/evangelizar/tv/playlist.m3u8", "TV Evangelizar", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/TV_Evangelizar_logo_2019.png/512px-TV_Evangelizar_logo_2019.png"],
       ["https://59f2354c05961.streamlock.net:1443/tvtropical/_definst_/tvtropical/playlist.m3u8", "TV Tropical", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/TV_Tropical_logo.png/512px-TV_Tropical_logo.png"],
@@ -870,23 +865,11 @@ let CATEGORIES = [
   }
 ];
 
-// Carregar canais customizados salvos anteriormente e FORÇAR a existência de Política
+// Carregar canais customizados salvos anteriormente
 const canaisSalvos = localStorage.getItem('i9tv_canais_custom');
 if (canaisSalvos) {
   try {
-    let parsed = JSON.parse(canaisSalvos);
-    
-    // Se a categoria Política não estiver no cache antigo, força a adição dela no topo
-    if (!parsed.some(c => c.name === 'Política')) {
-      parsed.unshift({
-        name: "Política",
-        channels: [
-          ["http://170.83.16.50/TV_SENADO/index.m3u8", "TV Senado", "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/TV_Senado_logo.png/512px-TV_Senado_logo.png"],
-          ["https://stream3.camara.gov.br/tv1/manifest.m3u8", "TV Câmara", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/TV_C%C3%A2mara_logo.png/512px-TV_C%C3%A2mara_logo.png"]
-        ]
-      });
-      localStorage.setItem('i9tv_canais_custom', JSON.stringify(parsed));
-    }
+    const parsed = JSON.parse(canaisSalvos);
     CATEGORIES = parsed;
   } catch (e) {
     console.error("Erro ao carregar canais salvos:", e);
@@ -964,29 +947,30 @@ function playChannel(catIdx, chanIdx) {
     hls = null;
   }
   
-  if (streamUrl.includes('.m3u8')) {
+  const ehVideoDireto = /\.(mp4|webm|ogg)([?#]|$)/i.test(streamUrl);
+
+  if (ehVideoDireto) {
+    // Vídeo direto (.mp4/.webm/.ogg): toca no player nativo, sem página no meio
+    iframeEl.style.display = 'none';
+    iframeEl.src = 'about:blank';
+    videoEl.style.display = 'block';
+    videoEl.pause();
+    videoEl.referrerPolicy = 'no-referrer';
+    videoEl.src = streamUrl;
+    videoEl.load();
+    videoEl.play().catch(e => console.log("Erro ao dar play:", e));
+  } else if (streamUrl.includes('.m3u8')) {
     iframeEl.style.display = 'none';
     iframeEl.src = 'about:blank';
     videoEl.style.display = 'block';
     videoEl.src = '';
     
     if (Hls.isSupported()) {
-      hls = new Hls({
-        maxBufferLength: 30,
-        maxMaxBufferLength: 60,
-        enableWorker: true
-      });
+      hls = new Hls();
       hls.loadSource(streamUrl);
       hls.attachMedia(videoEl);
-      
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
         videoEl.play().catch(e => console.log("Erro ao dar play:", e));
-      });
-      
-      hls.on(Hls.Events.ERROR, function (event, data) {
-        if (data.fatal) {
-          console.error("HLS Fatal Error:", data);
-        }
       });
     } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
       videoEl.src = streamUrl;
