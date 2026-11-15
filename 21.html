@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>21 Blackjack — Mesa Online</title>
+<style>
+:root{--bg:#0b261b;--felt:#0e4a32;--gold:#d4af37;--ivory:#f4ecd8;--red:#b3261e;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{height:100vh;height:100dvh;display:flex;flex-direction:column;gap:6px;background:radial-gradient(circle at center, #133b2a 0%, var(--bg) 100%);color:var(--ivory);font-family:'Palatino Linotype',Palatino,Georgia,serif;padding:max(8px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+
+header{display:flex;align-items:center;justify-content:space-between;flex:none;padding:0 4px}
+h1{font-size:clamp(15px,4.2vh,22px);margin:0;color:var(--gold);text-shadow:0 2px 4px rgba(0,0,0,0.8);display:flex;align-items:center;gap:6px}
+.stats{display:flex;align-items:center;gap:12px;font-size:clamp(11px,3.2vh,15px);font-weight:bold}
+.stats span b{color:var(--gold)}
+
+.game{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--felt);border:3px solid #4a3018;border-radius:14px;padding:10px;box-shadow:inset 0 0 50px rgba(0,0,0,0.7);position:relative}
+
+.game>main{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px}
+.stats{flex-wrap:wrap;justify-content:flex-end}
+.table-area{flex:1;display:flex;flex-direction:column;justify-content:space-around;align-items:center;min-height:0}
+.hand-container{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%}
+.hand-title{font-size:clamp(12px,3.2vh,16px);color:var(--gold);text-shadow:0 1px 3px #000;font-weight:bold}
+.cards-row{display:flex;justify-content:center;align-items:center;min-height:clamp(85px,18vh,130px);position:relative}
+
+/* Cartas realistas */
+.card{width:clamp(55px,11vw,85px);height:clamp(80px,16vh,122px);background:linear-gradient(135deg, #ffffff 0%, #f4ecd8 100%);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.5), inset 0 0 0 1px #b0a487;display:flex;flex-direction:column;justify-content:space-between;padding:6px 8px;position:relative;font-weight:bold;user-select:none;margin-left:calc(clamp(55px,11vw,85px) * -0.45);z-index:2}
+.card:first-child{margin-left:0}
+.card.red{color:var(--red)}
+.card.black{color:#111}
+.card-top{font-size:clamp(11px,2.8vh,15px);line-height:1;display:flex;flex-direction:column;align-items:flex-start}
+.card-center{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(24px,6vh,38px);opacity:0.85}
+.card-bot{font-size:clamp(11px,2.8vh,15px);line-height:1;display:flex;flex-direction:column;align-items:flex-end;transform:rotate(180deg)}
+.card.back{background:linear-gradient(135deg, #1c3852 0%, #07111c 100%);border:2px solid var(--gold);box-shadow:0 6px 18px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:1}
+
+#msg{flex:none;text-align:center;font-size:clamp(12px,3.5vh,17px);font-weight:bold;text-shadow:0 1px 3px #000;min-height:1.5em;padding:2px}
+
+#bar{flex:none;display:flex;align-items:center;gap:10px;justify-content:space-between;background:rgba(0,0,0,0.45);border-radius:10px;padding:8px 12px;border:1px solid rgba(255,255,255,0.15)}
+.tray{display:flex;gap:6px;align-items:center}
+.chip{width:clamp(30px,7.5vh,40px);height:clamp(30px,7.5vh,40px);border-radius:50%;display:grid;place-items:center;font:700 clamp(10px,2.5vh,13px) sans-serif;border:2px dashed rgba(255,255,255,0.9);box-shadow:0 2px 5px rgba(0,0,0,0.5);cursor:pointer;background:#e8e4d8;color:#222}
+.chip.sel{outline:3px solid var(--gold);outline-offset:2px;transform:scale(1.1)}
+.c5{background:#c0392b;color:#fff}.c10{background:#e67e22;color:#fff}.c25{background:#27ae60;color:#fff}.c100{background:#222;color:#fff}.c500{background:#7d3c98;color:#fff}
+
+.actions{display:flex;gap:6px;align-items:center}
+button{font:inherit;color:var(--ivory);background:linear-gradient(180deg, #2a4035 0%, #1b2b24 100%);border:1px solid #446653;border-radius:8px;padding:8px 14px;font-size:clamp(12px,3.2vh,15px);cursor:pointer;touch-action:manipulation;white-space:nowrap;box-shadow:0 3px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);font-weight:bold;transition:all 0.15s ease}
+button:hover:not(:disabled){background:linear-gradient(180deg, #3b5c4c 0%, #27402f 100%);border-color:var(--gold);transform:translateY(-1px)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button[hidden]{display:none}
+
+#btn-hit{background:linear-gradient(180deg, #27ae60 0%, #1e8449 100%)}
+#btn-stand{background:linear-gradient(180deg, #c0392b 0%, #922b21 100%)}
+#btn-deal{background:linear-gradient(180deg, #fce181 0%, var(--gold) 100%);color:#1a1405;font-weight:700}
+
+/* Modal de Início */
+#mode-modal{position:fixed;inset:0;background:rgba(7, 19, 14, 0.96);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;overflow:auto}
+#mode-modal>div{background:linear-gradient(180deg, #1b2b24 0%, #0d1d17 100%);border:2px solid var(--gold);border-radius:12px;padding:24px;width:100%;max-width:420px;box-shadow:0 20px 50px rgba(0,0,0,0.8);line-height:1.6}
+#mode-modal input{width:100%;margin:6px 0 14px;font-size:16px;padding:8px;background:#10261d;color:var(--ivory);border:1px solid #446653;border-radius:6px}
+#mode-modal button{width:100%;margin-top:10px;padding:12px;font-size:16px;font-weight:bold}
+
+#seats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;width:100%}
+.seat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 10px;border-radius:10px;border:1px solid transparent}
+.seat.me{background:rgba(0,0,0,.2)}.seat.act{border-color:var(--gold)}
+.seat .cards-row{min-height:clamp(64px,13vh,104px)}
+.seat .card{width:clamp(44px,7vw,70px);height:clamp(64px,12vh,100px);margin-left:calc(clamp(44px,7vw,70px) * -.45);padding:4px 5px}
+.seat .card:first-child{margin-left:0}.seat .card-center{font-size:clamp(18px,4vh,28px)}
+.seatinfo{font-size:12px;text-align:center}
+#mode-modal p{font-size:13px;opacity:.8;margin:10px 0 0}
+</style>
+</head>
+<body>
+<div id="mode-modal"><div>
+<b style="color:var(--gold);font-size:1.3em;display:block;margin-bottom:12px;text-align:center">🃏 21 Blackjack</b>
+Seu nome<input id="mpn" maxlength="14" placeholder="Ex.: Ana">
+Sala (quem usar o mesmo nome joga junto)<input id="mpr" value="mesa1" maxlength="20">
+<button id="mpgo" style="background:linear-gradient(180deg,#fce181,var(--gold));color:#1a1405">🌐 Entrar na mesa</button>
+<button id="solo" style="background:linear-gradient(180deg,#27ae60,#1e8449)">🤖 Jogar sozinho (contra a Máquina)</button>
+<p>Todos que entram na sala sentam à mesa (até 5) e jogam contra o Dealer. O primeiro a entrar distribui.</p>
+</div></div>
+<header><h1>🃏 <span>21 Blackjack</span></h1>
+<div class="stats"><span id="mpi">👥 Solo</span><span>Fichas: <b id="bal">1000</b></span><button id="leave" style="padding:4px 8px;font-size:12px">🔄 Sair</button></div></header>
+<div class="game"><main><div class="table-area">
+<div class="hand-container"><div class="hand-title" id="t-d">Dealer</div><div class="cards-row" id="c-d"></div></div>
+<div id="msg"></div>
+<div id="seats"></div>
+</div>
+<div id="bar"><div class="tray" id="tray"></div><div class="actions"><span style="font-size:13px">Aposta: <b id="bet-disp">10</b></span>
+<button id="btn-hit" hidden>Pedir</button><button id="btn-stand" hidden>Parar</button><button id="btn-deal" hidden>Distribuir</button></div></div>
+</main></div>
+<script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+let MP_ID;try{MP_ID=sessionStorage.getItem('bj_id')}catch(e){}
+if(!MP_ID){MP_ID=Math.random().toString(36).slice(2,8);try{sessionStorage.setItem('bj_id',MP_ID)}catch(e){}}
+const MP={on:false,name:'Você',topic:'',c:null,peers:{},id:MP_ID,j:Date.now(),iv:0,
+ pub(o){if(MP.c&&MP.c.connected)MP.c.publish(MP.topic,JSON.stringify({...o,id:MP.id}))}};
+let G=null,deck=[];
+let AC;function tok(f=400,d=0.08){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type='triangle';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f/2,t+d);g.gain.setValueAtTime(0.18,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+const seats=()=>!MP.on?[{id:MP.id,u:MP.name,j:MP.j}]:Object.entries(MP.peers).filter(([id,p])=>id===MP.id||Date.now()-p.ts<12000).map(([id,p])=>({id,u:p.u,j:p.j})).sort((a,b)=>a.j-b.j||a.id.localeCompare(b.id));
+const amHost=()=>G?G.host===MP.id:(seats()[0]||{}).id===MP.id;
+function mkDeck(){const d=[];for(const s of['♥','♦','♣','♠'])for(const v of['2','3','4','5','6','7','8','9','10','J','Q','K','A'])d.push({v,s,red:s==='♥'||s==='♦'});for(let i=d.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[d[i],d[j]]=[d[j],d[i]]}return d}
+function score(h){let t=0,a=0;for(const c of h){if(c.v==='A'){a++;t+=1}else if('JQK'.includes(c.v))t+=10;else t+=+c.v}return a&&t+10<=21?t+10:t}
+const card=(c,hide)=>hide?'<div class="card back"><div style="color:var(--gold);font-size:28px">♠</div></div>':`<div class="card ${c.red?'red':'black'}"><div class="card-top"><span>${c.v}</span><span>${c.s}</span></div><div class="card-center">${c.s}</div><div class="card-bot"><span>${c.v}</span><span>${c.s}</span></div></div>`;
+[5,10,25,100,500].forEach(v=>{const c=document.createElement('div');c.className='chip c'+v;c.dataset.v=v;c.textContent=v;c.onclick=()=>{if(G&&['betting','ended'].includes(G.phase)){tok(700,0.05);act('bet',v)}};$('#tray').append(c)});
+const me=()=>G&&G.players.find(p=>p.id===MP.id);
+const cur=()=>G&&G.phase==='turn'?G.players[G.turn]:null;
+function render(){
+ $('#mpi').textContent=MP.on?'👥 '+seats().length+' online':'👥 Solo';
+ if(!G){$('#msg').textContent='Conectando à mesa...';$('#seats').innerHTML='';$('#c-d').innerHTML='';return}
+ const live=G.phase==='turn',m=me(),c=cur(),mine=!!c&&c.id===MP.id;
+ $('#bal').textContent=m?m.bal:1000;$('#bet-disp').textContent=m?m.bet:10;
+ document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('sel',!!m&&+x.dataset.v===m.bet));
+ $('#t-d').textContent='Dealer'+(G.dealer.length&&!live?` — Total: ${score(G.dealer)}`:'');
+ $('#c-d').innerHTML=G.dealer.map((x,i)=>card(x,live&&i>0)).join('');
+ $('#seats').innerHTML=G.players.map(p=>{const s=score(p.h),lbl=p.res||(p.st==='bust'?'Estourou':p.st==='bj'?'Blackjack!':p.st==='stand'?'Parou':'');
+  return `<div class="seat ${p.id===MP.id?'me':''} ${c&&c.id===p.id?'act':''}"><div class="hand-title">${esc(p.u)}${p.id===MP.id?' (você)':''}${p.h.length?' — '+s:''}</div><div class="cards-row">${p.h.map(x=>card(x)).join('')}</div><div class="seatinfo">Fichas ${p.bal} · Aposta ${p.bet}${lbl?' · <b>'+esc(lbl)+'</b>':''}</div></div>`}).join('');
+ $('#btn-hit').hidden=$('#btn-stand').hidden=!mine;
+ $('#btn-deal').hidden=!(amHost()&&['betting','ended'].includes(G.phase));
+ $('#msg').textContent=mine?'Sua vez! Peça carta ou Pare.':(m?G.msg:'Aguarde a próxima rodada...');
+}
+/* ===== host ===== */
+const mkP=s=>({id:s.id,u:s.u,bal:1000,bet:10,h:[],st:'wait',res:''});
+function seatSync(){
+ if(!G)G={host:MP.id,phase:'betting',players:[],dealer:[],turn:0,msg:'Escolha a ficha e clique em Distribuir.'};
+ if(['betting','ended'].includes(G.phase))G.players=seats().slice(0,5).map(s=>G.players.find(p=>p.id===s.id)||mkP(s));
+}
+function hpush(){render();if(MP.on)MP.pub({t:'st',G})}
+function deal(){
+ seatSync();if(!G.players.length)return;
+ G.players.forEach(p=>{if(p.bal<5)p.bal=1000;if(p.bet>p.bal)p.bet=[500,100,25,10,5].find(v=>v<=p.bal)});
+ deck=mkDeck();G.dealer=[deck.pop(),deck.pop()];
+ G.players.forEach(p=>{p.bal-=p.bet;p.h=[deck.pop(),deck.pop()];p.st='wait';p.res=''});
+ G.phase='turn';G.turn=-1;tok(600,0.1);nextTurn();
+}
+function nextTurn(){
+ for(G.turn++;G.turn<G.players.length;G.turn++){
+  const p=G.players[G.turn],s=score(p.h);
+  if(p.h.length===2&&s===21)p.st='bj';else if(s>=21)p.st='stand';
+  else{p.st='play';G.msg=`Vez de ${p.u}!`;return hpush()}
+ }
+ dealerPlay();
+}
+function hit(id){const p=cur();if(!p||p.id!==id||p.st!=='play')return;
+ p.h.push(deck.pop());tok(520,0.08);const s=score(p.h);
+ if(s>21){p.st='bust';tok(250,0.15);nextTurn()}else if(s===21){p.st='stand';nextTurn()}else hpush()}
+function stand(id){const p=cur();if(!p||p.id!==id||p.st!=='play')return;p.st='stand';nextTurn()}
+function dealerPlay(){
+ G.phase='dealer';G.msg='Dealer jogando...';hpush();
+ const need=G.players.some(p=>p.st==='stand');
+ const loop=()=>{if(!G||G.host!==MP.id||G.phase!=='dealer')return;
+  if(need&&score(G.dealer)<17){G.dealer.push(deck.pop());tok(460,0.08);hpush();setTimeout(loop,700)}else payout()};
+ setTimeout(loop,700);
+}
+function payout(){
+ const d=score(G.dealer),dbj=G.dealer.length===2&&d===21;
+ G.players.forEach(p=>{const s=score(p.h);
+  if(p.st==='bust')p.res='Estourou';
+  else if(p.st==='bj'){if(dbj){p.bal+=p.bet;p.res='Empate'}else{const w=Math.floor(p.bet*2.5);p.bal+=w;p.res='Blackjack +'+(w-p.bet)}}
+  else if(dbj||(d<=21&&d>s))p.res='Perdeu';
+  else if(d>21||s>d){p.bal+=p.bet*2;p.res='Venceu +'+p.bet}
+  else{p.bal+=p.bet;p.res='Empate'}});
+ G.phase='ended';G.msg=`Dealer fez ${d}${d>21?' (estourou)':''}. Distribua de novo!`;tok(800,0.2);hpush();
+}
+function hostAct(id,a,v){
+ if(!G||G.host!==MP.id)return;
+ if(a==='bet'&&['betting','ended'].includes(G.phase)){const p=G.players.find(q=>q.id===id);if(p&&[5,10,25,100,500].includes(v)&&v<=p.bal){p.bet=v;hpush()}}
+ else if(a==='deal'&&id===MP.id&&['betting','ended'].includes(G.phase))deal();
+ else if(a==='hit')hit(id);else if(a==='stand')stand(id);
+}
+function act(a,v){if(amHost()){if(!G)seatSync();hostAct(MP.id,a,v)}else MP.pub({t:'act',a,v})}
+$('#btn-deal').onclick=()=>act('deal');$('#btn-hit').onclick=()=>act('hit');$('#btn-stand').onclick=()=>act('stand');
+/* ===== rede (MQTT, igual ao Dominó) ===== */
+function drop(id){
+ const p=MP.peers[id];delete MP.peers[id];if(!p)return;
+ if(G&&G.host===id){G=null;if(amHost()){seatSync();hpush()}else render();return}
+ if(G&&amHost()){const c=cur();if(c&&c.id===id)stand(id);else{seatSync();hpush()}}
+ render();
+}
+function upMp(){const now=Date.now();for(const k in MP.peers)if(k!==MP.id&&now-MP.peers[k].ts>25000)drop(k);render()}
+function mpMsg(d){
+ switch(d.t){
+ case'hi':{const nw=!MP.peers[d.id];MP.peers[d.id]={u:d.u,j:d.j,ts:Date.now()};
+  if(nw){if(d.id!==MP.id)MP.pub({t:'hi',u:MP.name,j:MP.j});if(G&&amHost()){seatSync();hpush()}else render()}break}
+ case'bye':drop(d.id);break;
+ case'st':if(d.id===MP.id)break;G=d.G;render();break;
+ case'act':if(amHost()&&d.id!==MP.id)hostAct(d.id,d.a,d.v);break;
+ case'need':if(G&&amHost()&&d.id!==MP.id)hpush();break;
+ }
+}
+function mpJoin(name,room){
+ if(typeof mqtt==='undefined'){alert('Não foi possível carregar o multiplayer. Verifique a internet.');return false}
+ MP.name=name;MP.topic='bj21/v1/'+room;
+ const c=MP.c=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'bj_'+MP.id,reconnectPeriod:3000,connectTimeout:8000});
+ c.on('connect',()=>{MP.on=true;c.subscribe(MP.topic);MP.pub({t:'hi',u:name,j:MP.j});MP.pub({t:'need'});render();
+  setTimeout(()=>{if(!G&&amHost()){seatSync();hpush()}},1500)});
+ c.on('close',()=>{if(MP.c!==c)return;MP.on=false;render()});
+ c.on('message',(t,m)=>{if(MP.c!==c)return;let d;try{d=JSON.parse(m.toString())}catch(e){return}mpMsg(d)});
+ MP.iv=setInterval(()=>{MP.pub({t:'hi',u:name,j:MP.j});if(G&&amHost())hpush();upMp()},8000);
+ return true;
+}
+const getName=()=>($('#mpn').value.trim().replace(/[<>&]/g,'')).slice(0,14)||'Jogador'+(Math.random()*900+100|0);
+$('#mpgo').onclick=()=>{const n=getName(),r=($('#mpr').value.trim()||'mesa1').replace(/[^\w-]/g,'').slice(0,20)||'mesa1';
+ try{localStorage.setItem('bj_nome',n)}catch(e){}
+ if(mpJoin(n,r))$('#mode-modal').style.display='none'};
+$('#solo').onclick=()=>{MP.name=getName();$('#mode-modal').style.display='none';seatSync();hpush()};
+$('#leave').onclick=()=>{if(MP.on)MP.pub({t:'bye'});setTimeout(()=>location.reload(),120)};
+window.addEventListener('beforeunload',()=>{if(MP.on)MP.pub({t:'bye'})});
+try{$('#mpn').value=localStorage.getItem('bj_nome')||''}catch(e){}
+render();
+</script></body></html>
