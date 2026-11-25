@@ -458,18 +458,122 @@
     .edge-tap { width: 15px; }
     .ch-card-actions { display: flex; opacity: 0.7; }
   }
+
+  /* ==========================================
+     MODO TV (controle remoto)
+     ========================================== */
+  .tv-info, .tv-toast { display: none; }
+
+  /* foco visível (também ajuda no teclado do PC) */
+  .ch-card:focus-visible, .tab:focus-visible, .btn-sync:focus-visible,
+  .btn-add-channel:focus-visible, .search-box input:focus-visible {
+    outline: 3px solid var(--accent2); outline-offset: 2px;
+  }
+
+  html.tv, html.tv body { cursor: none; }
+  html.tv .layout { display: block; height: 100%; }
+  html.tv .main-content {
+    position: fixed; inset: 0; padding: 0; order: 0; flex: none;
+    background: #000; display: block;
+  }
+  html.tv .player-wrapper { max-width: none; width: 100%; height: 100%; }
+  html.tv .player-frame { height: 100%; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+  html.tv .player-bar, html.tv .edge-tap { display: none !important; }
+
+  html.tv .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; z-index: 5000;
+    width: clamp(520px, 50vw, 960px); flex: none; order: 0;
+    border-right: 1px solid var(--line); border-top: none;
+    background: rgba(12, 16, 26, 0.97);
+    box-shadow: 10px 0 40px rgba(0,0,0,0.7);
+    transform: translateX(-105%); transition: transform 0.25s ease;
+    overflow: hidden;
+  }
+  html.tv.menu-open .sidebar { transform: none; }
+
+  html.tv .brand { display: flex; padding: 14px 20px; }
+  html.tv .brand h1 { font-size: clamp(22px, 2vw, 34px); }
+  html.tv .brand .btn-add-channel { display: none; }
+  html.tv .btn-sync { font-size: clamp(14px, 1.2vw, 22px); padding: 8px 14px; }
+
+  html.tv .search-box { padding: 10px 16px; }
+  html.tv .search-box input { font-size: clamp(15px, 1.3vw, 24px); padding: 10px 14px; }
+
+  html.tv .section-title { display: block; font-size: clamp(12px, 1vw, 18px); padding: 10px 20px 4px; }
+  html.tv .categories-section { max-height: none; border-bottom: 1px solid var(--line); }
+  html.tv .tabs {
+    flex-direction: row; overflow-x: auto; overflow-y: hidden;
+    padding: 8px 16px 12px; gap: 10px;
+  }
+  html.tv .tabs::-webkit-scrollbar { display: none; }
+  html.tv .tab {
+    white-space: nowrap; flex: 0 0 auto; gap: 8px;
+    font-size: clamp(16px, 1.5vw, 28px); padding: 10px 20px; border-radius: 28px;
+    border: 2px solid transparent;
+  }
+  html.tv .tab-count { font-size: clamp(12px, 1vw, 18px); }
+
+  html.tv .channels-container {
+    grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 9.5vw, 200px), 1fr));
+    gap: 14px; padding: 14px 20px 30px;
+  }
+  html.tv .ch-card { padding: 14px 8px; border-width: 2px; }
+  html.tv .ch-card:hover { transform: none; }
+  html.tv .ch-card-actions { display: none !important; }
+  html.tv .ch-logo-wrapper { width: clamp(56px, 4.6vw, 100px); height: clamp(56px, 4.6vw, 100px); }
+  html.tv .ch-logo-fallback { width: clamp(56px, 4.6vw, 100px); height: clamp(56px, 4.6vw, 100px); font-size: clamp(18px, 1.6vw, 30px); }
+  html.tv .ch-name { font-size: clamp(13px, 1.15vw, 22px); }
+
+  html.tv :focus { outline: none; }
+  html.tv .ch-card:focus, html.tv .tab:focus, html.tv .btn-sync:focus, html.tv .search-box input:focus {
+    outline: 4px solid #fff; outline-offset: 2px;
+    box-shadow: 0 0 0 7px rgba(0,216,180,0.55), 0 10px 30px rgba(0,0,0,0.6);
+    background: rgba(124,92,255,0.35); color: #fff; z-index: 2;
+  }
+  html.tv .ch-card:focus { transform: scale(1.06); }
+
+  /* faixa de informação do canal (aparece ao trocar) */
+  html.tv .tv-info {
+    display: flex; align-items: center; gap: clamp(16px, 2vw, 40px);
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 4000;
+    padding: clamp(20px, 3vw, 48px) clamp(24px, 4vw, 70px);
+    background: linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0));
+    opacity: 0; transform: translateY(24px); transition: 0.3s; pointer-events: none;
+  }
+  html.tv .tv-info.show { opacity: 1; transform: none; }
+  .tv-info-num {
+    font-size: clamp(28px, 3.4vw, 64px); font-weight: 900; color: var(--accent2);
+    min-width: 2.4em; text-align: center;
+  }
+  .tv-info-body { flex: 1; min-width: 0; }
+  .tv-info-cat { font-size: clamp(12px, 1.1vw, 20px); color: var(--accent2); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  .tv-info-name { font-size: clamp(24px, 2.8vw, 54px); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tv-info-epg { font-size: clamp(14px, 1.3vw, 24px); color: #c3cbe0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tv-info-hint { font-size: clamp(12px, 1vw, 19px); color: #aab3c8; text-align: right; line-height: 1.6; }
+
+  html.tv .tv-toast {
+    display: block; position: fixed; top: 4vh; right: 4vw; z-index: 9000;
+    transform: translateY(-20px); opacity: 0; transition: 0.25s;
+    background: rgba(18,23,36,0.95); border: 1px solid var(--line);
+    padding: 12px 26px; border-radius: 30px; font-size: clamp(15px, 1.5vw, 28px);
+    font-weight: 700; pointer-events: none; max-width: 80vw; text-align: center;
+  }
+  html.tv .tv-toast.show { opacity: 1; transform: none; }
+
+  html.tv .modal-box { max-width: 640px; }
 </style>
 </head>
 <body>
 
 <div class="layout">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebarTV">
     <div class="brand">
       <div class="brand-title">
         <div class="dot"></div>
         <h1><span>i9</span>tv</h1>
       </div>
       <div class="brand-actions">
+        <button class="btn-sync" id="btnModoTV" onclick="alternarModoTV()" title="Alternar Modo TV">📺 TV</button>
         <button class="btn-sync" onclick="sincronizarAPI(true)" title="Atualizar lista da API">🔄</button>
         <button class="btn-add-channel" onclick="abrirSenha('add')">➕ Canal</button>
       </div>
@@ -516,6 +620,18 @@
     </div>
   </main>
 </div>
+
+<!-- FAIXA DE INFO E AVISOS (MODO TV) -->
+<div class="tv-info" id="tvInfo">
+  <div class="tv-info-num" id="tvInfoNum"></div>
+  <div class="tv-info-body">
+    <div class="tv-info-cat" id="tvInfoCat"></div>
+    <div class="tv-info-name" id="tvInfoName"></div>
+    <div class="tv-info-epg" id="tvInfoEpg"></div>
+  </div>
+  <div class="tv-info-hint">▲ ▼ trocar canal<br>◀ ▶ trocar servidor<br>OK abrir lista</div>
+</div>
+<div class="tv-toast" id="tvToast"></div>
 
 <!-- MODAL DE SENHA -->
 <div class="modal-overlay" id="modalSenha">
@@ -981,6 +1097,7 @@ function renderTabs() {
     btn.innerHTML = `<span>${cat.name}</span><span class="tab-count">${cat.channels.length}</span>`;
     btn.onclick = () => {
       document.getElementById("searchInput").value = "";
+      if (IS_TV) { verCategoria(idx); return; }
       playChannel(idx, 0);
     };
     tabsEl.appendChild(btn);
@@ -1091,6 +1208,7 @@ function playChannel(catIdx, chanIdx) {
 
   carregarStreamUrl(ch.url);
   renderChannels(catIdx, ch.id);
+  if (IS_TV) mostrarInfoTV(ch, cat);
 }
 
 function renderChannels(catIdx, activeId) {
@@ -1124,10 +1242,15 @@ function criarCardCanal(ch, catIdx, chanIdx, isActive) {
     <div class="ch-name">${ch.name}</div>
   `;
   
+  card.tabIndex = 0;
   card.onclick = (e) => {
     if (e.target.tagName !== 'BUTTON') {
       playChannel(catIdx, chanIdx);
+      if (IS_TV) fecharMenuTV();
     }
+  };
+  card.onkeydown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
   };
   return card;
 }
@@ -1338,6 +1461,7 @@ document.getElementById("tapNext").onclick = nextChannel;
 document.getElementById("tapPrev").onclick = prevChannel;
 
 document.addEventListener("keydown", (e) => {
+  if (IS_TV) return;
   if (document.activeElement.tagName === "INPUT") return;
   if (e.key === "ArrowRight") nextChannel();
   if (e.key === "ArrowLeft") prevChannel();
@@ -1385,6 +1509,257 @@ document.addEventListener('touchend', (e) => {
     else prevChannel();
   }
 }, { passive: true });
+
+// ==========================================
+// MODO TV (CONTROLE REMOTO)
+// ==========================================
+// Liga sozinho em Smart TV / Android TV. Também dá pra forçar com ?tv=1 ou pelo botão "📺 TV".
+function detectarTV() {
+  try {
+    const q = new URLSearchParams(location.search).get('tv');
+    if (q === '1') return true;
+    if (q === '0') return false;
+  } catch (e) {}
+  try {
+    const salvo = localStorage.getItem('i9tv_modo_tv');
+    if (salvo === '1') return true;
+    if (salvo === '0') return false;
+  } catch (e) {}
+  const ua = navigator.userAgent || '';
+  if (/SMART-?TV|SmartTV|Tizen|Web0S|WebOS|BRAVIA|AFT[A-Z]|GoogleTV|HbbTV|\bTV\b/i.test(ua)) return true;
+  const semToque = (navigator.maxTouchPoints || 0) === 0;
+  const semMouse = !(window.matchMedia && window.matchMedia('(any-pointer: fine)').matches);
+  return /Android/i.test(ua) && semToque && semMouse;
+}
+
+let IS_TV = detectarTV();
+let menuTVAberto = false;
+let timerInfoTV = null;
+let timerToastTV = null;
+let ultimoVoltar = 0;
+let ultimoVoltarEvento = 0;
+
+const tvInfoEl = document.getElementById('tvInfo');
+const tvToastEl = document.getElementById('tvToast');
+const sidebarEl = document.getElementById('sidebarTV');
+
+function aplicarModoTV(ativo) {
+  IS_TV = ativo;
+  document.documentElement.classList.toggle('tv', ativo);
+  if (!ativo) {
+    menuTVAberto = false;
+    document.documentElement.classList.remove('menu-open');
+    tvInfoEl.classList.remove('show');
+  }
+  // o foco nunca deve ficar preso dentro do player
+  iframeEl.tabIndex = -1;
+  videoEl.tabIndex = -1;
+  if (ativo) {
+    try { document.body.tabIndex = -1; document.body.focus(); } catch (e) {}
+    if (CATEGORIES.length) {
+      const ch = CATEGORIES[currentCatIndex]?.channels[currentChanIndex];
+      if (ch) mostrarInfoTV(ch, CATEGORIES[currentCatIndex]);
+    }
+  }
+}
+
+function alternarModoTV() {
+  const novo = !IS_TV;
+  try { localStorage.setItem('i9tv_modo_tv', novo ? '1' : '0'); } catch (e) {}
+  aplicarModoTV(novo);
+  if (novo) { tvAviso('Modo TV ligado'); }
+}
+
+function tvAviso(texto) {
+  if (!IS_TV) return;
+  tvToastEl.textContent = texto;
+  tvToastEl.classList.add('show');
+  clearTimeout(timerToastTV);
+  timerToastTV = setTimeout(() => tvToastEl.classList.remove('show'), 2500);
+}
+
+function mostrarInfoTV(ch, cat) {
+  if (!IS_TV || !ch) return;
+  const globalIndex = ALL.findIndex(c => c.id === ch.id && c.name === ch.name);
+  document.getElementById('tvInfoNum').textContent = globalIndex >= 0 ? globalIndex + 1 : currentChanIndex + 1;
+  document.getElementById('tvInfoCat').textContent = cat.name;
+  document.getElementById('tvInfoName').textContent = ch.name;
+  document.getElementById('tvInfoEpg').textContent = nowEpg.textContent || '';
+  tvInfoEl.classList.add('show');
+  clearTimeout(timerInfoTV);
+  timerInfoTV = setTimeout(() => tvInfoEl.classList.remove('show'), 5000);
+}
+
+function verCategoria(idx) {
+  if (idx < 0 || idx >= CATEGORIES.length) return;
+  const ativoId = idx === currentCatIndex ? CATEGORIES[idx].channels[currentChanIndex]?.id : null;
+  document.querySelectorAll('.tab').forEach((b, i) => b.classList.toggle('active', i === idx));
+  channelSectionTitle.textContent = `Canais: ${CATEGORIES[idx].name} (${CATEGORIES[idx].channels.length})`;
+  renderChannels(idx, ativoId);
+}
+
+function abrirMenuTV() {
+  if (menuTVAberto) return;
+  menuTVAberto = true;
+  tvInfoEl.classList.remove('show');
+  document.documentElement.classList.add('menu-open');
+  document.getElementById('searchInput').value = '';
+  verCategoria(currentCatIndex);
+  setTimeout(() => {
+    const alvo = channelsContainer.querySelector('.ch-card.active') || channelsContainer.querySelector('.ch-card') || tabsEl.querySelector('.tab');
+    if (alvo) focarEl(alvo);
+  }, 120);
+}
+
+function fecharMenuTV() {
+  if (!menuTVAberto) return;
+  menuTVAberto = false;
+  document.documentElement.classList.remove('menu-open');
+  try { if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); } catch (e) {}
+  try { window.focus(); document.body.focus(); } catch (e) {}
+}
+
+function focarEl(el) {
+  try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
+  try { el.scrollIntoView({ block: el.classList.contains('ch-card') ? 'center' : 'nearest', inline: 'nearest' }); } catch (e) {}
+}
+
+function emCampoTexto(el) {
+  el = el || document.activeElement;
+  return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+}
+
+// Navegação espacial: acha o elemento focável mais próximo na direção da seta
+function moverFoco(dir) {
+  const modal = document.querySelector('.modal-overlay.show');
+  const escopo = modal || sidebarEl;
+  const lista = Array.from(escopo.querySelectorAll('button, [tabindex="0"], input, select'))
+    .filter(el => !el.disabled && el.getClientRects().length > 0);
+  if (!lista.length) return;
+
+  const atual = document.activeElement;
+  if (!atual || !escopo.contains(atual) || !lista.includes(atual)) {
+    focarEl(escopo.querySelector('.ch-card.active') || lista[0]);
+    return;
+  }
+
+  const r = atual.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  let melhor = null, melhorScore = Infinity;
+
+  lista.forEach(el => {
+    if (el === atual) return;
+    const b = el.getBoundingClientRect();
+    const dx = (b.left + b.width / 2) - cx;
+    const dy = (b.top + b.height / 2) - cy;
+    let principal, lateral;
+    if (dir === 'right') { if (dx <= 4) return; principal = dx; lateral = Math.abs(dy); }
+    else if (dir === 'left') { if (dx >= -4) return; principal = -dx; lateral = Math.abs(dy); }
+    else if (dir === 'down') { if (dy <= 4) return; principal = dy; lateral = Math.abs(dx); }
+    else { if (dy >= -4) return; principal = -dy; lateral = Math.abs(dx); }
+    const score = principal + lateral * 2.5;
+    if (score < melhorScore) { melhorScore = score; melhor = el; }
+  });
+
+  if (melhor) focarEl(melhor);
+}
+
+function mudarServidor(delta) {
+  const ch = CATEGORIES[currentCatIndex]?.channels[currentChanIndex];
+  if (!ch || !Array.isArray(ch.embeds) || ch.embeds.length < 2) {
+    tvAviso('Este canal tem só 1 servidor');
+    return;
+  }
+  const n = serverSelect.options.length;
+  if (n < 2) return;
+  let i = (serverSelect.selectedIndex + delta + n) % n;
+  serverSelect.selectedIndex = i;
+  trocarServidor(serverSelect.value);
+  tvAviso(`Servidor ${i + 1}/${n}: ${serverSelect.options[i].textContent}`);
+}
+
+function tratarVoltar() {
+  const agora = Date.now();
+  if (agora - ultimoVoltarEvento < 350) return; // evita contar 2x (tecla + popstate)
+  ultimoVoltarEvento = agora;
+
+  if (document.querySelector('.modal-overlay.show')) { fecharSenha(); fecharCanal(); return; }
+  if (menuTVAberto) { fecharMenuTV(); return; }
+  if (agora - ultimoVoltar < 2500) {
+    try { window.close(); } catch (e) {}
+    return; // sem re-empilhar: o próximo VOLTAR sai do app
+  }
+  ultimoVoltar = agora;
+  tvAviso('Aperte VOLTAR de novo para sair');
+  try { history.pushState({ tv: 1 }, ''); } catch (e) {}
+}
+
+window.addEventListener('popstate', () => {
+  if (!IS_TV) return;
+  const jaDeuVoltaDuasVezes = (Date.now() - ultimoVoltar < 2500) && !menuTVAberto && !document.querySelector('.modal-overlay.show');
+  tratarVoltar();
+  if (!jaDeuVoltaDuasVezes) { try { history.pushState({ tv: 1 }, ''); } catch (e) {} }
+});
+try { history.pushState({ tv: 1 }, ''); } catch (e) {}
+
+document.addEventListener('keydown', (e) => {
+  if (!IS_TV) return;
+  const k = e.key, kc = e.keyCode;
+  const modalAberto = !!document.querySelector('.modal-overlay.show');
+  const alvoTexto = emCampoTexto();
+
+  // VOLTAR
+  if (k === 'Escape' || k === 'BrowserBack' || k === 'GoBack' || kc === 4 || kc === 27 || (k === 'Backspace' && !alvoTexto)) {
+    e.preventDefault();
+    tratarVoltar();
+    return;
+  }
+
+  // Lista (gaveta) aberta ou janela aberta: setas movem o foco
+  if (menuTVAberto || modalAberto) {
+    const dir = ({ ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' })[k];
+    if (dir) {
+      if (alvoTexto && (dir === 'left' || dir === 'right')) return; // mover cursor do texto
+      e.preventDefault();
+      moverFoco(dir);
+      return;
+    }
+    if (k === 'Enter') {
+      const el = document.activeElement;
+      if (el && el.getAttribute && el.getAttribute('tabindex') === '0' && el.tagName !== 'BUTTON' && el.tagName !== 'INPUT') {
+        e.preventDefault();
+        el.click();
+      }
+    }
+    return;
+  }
+
+  // Assistindo (lista fechada)
+  switch (true) {
+    case k === 'ArrowUp' || k === 'ChannelUp' || k === 'PageUp' || kc === 427 || k === 'MediaTrackNext':
+      e.preventDefault(); nextChannel(); break;
+    case k === 'ArrowDown' || k === 'ChannelDown' || k === 'PageDown' || kc === 428 || k === 'MediaTrackPrevious':
+      e.preventDefault(); prevChannel(); break;
+    case k === 'ArrowLeft':
+      e.preventDefault(); mudarServidor(-1); break;
+    case k === 'ArrowRight':
+      e.preventDefault(); mudarServidor(1); break;
+    case k === 'Enter' || k === ' ' || k === 'ContextMenu' || k === 'Info' || kc === 82 || k === 'MediaPlayPause':
+      e.preventDefault(); abrirMenuTV(); break;
+  }
+}, true);
+
+// Se o player "roubar" o foco, devolve para a página (senão o controle para de responder)
+window.addEventListener('blur', () => {
+  if (!IS_TV) return;
+  setTimeout(() => {
+    if (document.activeElement === iframeEl || document.activeElement === videoEl) {
+      try { document.activeElement.blur(); window.focus(); document.body.focus(); } catch (e) {}
+    }
+  }, 150);
+});
+
+aplicarModoTV(IS_TV);
 
 // Inicialização automática via API
 sincronizarAPI(false);
