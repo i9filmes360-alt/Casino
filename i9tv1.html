@@ -691,13 +691,127 @@ function configurarGloboSergipe(canalObj, baseEmbedExample) {
   };
 }
 
+// ==========================================
+// SINCRONIZAÇÃO COMPARTILHADA (TODOS DA FAMÍLIA)
+// ==========================================
+// Cole aqui o endereço do seu Firebase Realtime Database, ex:
+// const FIREBASE_URL = 'https://i9tv-familia-default-rtdb.firebaseio.com';
+const FIREBASE_URL = 'https://i9tv-familia-default-rtdb.firebaseio.com';
+
+const SHARED_CACHE_KEY = STORAGE_KEY + '_shared_cache';
+let SHARED = { extras: {}, removed: {}, overrides: {} };
+let API_CANAIS = [];
+let avisouSemNuvem = false;
+
+function fbKey(id) { return String(id).replace(/[.$#\[\]\/]/g, '_'); }
+function nuvemAtiva() { return !!FIREBASE_URL; }
+function normalizarShared(d) {
+  d = d || {};
+  return { extras: d.extras || {}, removed: d.removed || {}, overrides: d.overrides || {} };
+}
+function lerCacheShared() {
+  try {
+    const c = localStorage.getItem(SHARED_CACHE_KEY);
+    if (c) SHARED = normalizarShared(JSON.parse(c));
+  } catch (e) {}
+}
+function gravarCacheShared() {
+  try { localStorage.setItem(SHARED_CACHE_KEY, JSON.stringify(SHARED)); } catch (e) {}
+}
+
+async function carregarShared() {
+  if (!nuvemAtiva()) { lerCacheShared(); return false; }
+  try {
+    const res = await fetch(`${FIREBASE_URL}/i9tv.json`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    SHARED = normalizarShared(await res.json());
+    gravarCacheShared();
+    return true;
+  } catch (e) {
+    console.warn('Sem acesso à nuvem, usando cache local:', e);
+    lerCacheShared();
+    return false;
+  }
+}
+
+// grupo/chave  (ex: "extras/custom_123"). valor null = apagar
+async function escreverShared(caminho, valor) {
+  const [grupo, chave] = caminho.split('/');
+  if (valor === null) delete SHARED[grupo][chave];
+  else SHARED[grupo][chave] = valor;
+  gravarCacheShared();
+
+  if (!nuvemAtiva()) {
+    if (!avisouSemNuvem) {
+      avisouSemNuvem = true;
+      alert("⚠️ A sincronização na nuvem ainda não foi configurada (FIREBASE_URL vazio). A alteração ficou salva só neste aparelho.");
+    }
+    return false;
+  }
+  try {
+    const res = await fetch(`${FIREBASE_URL}/i9tv/${caminho}.json`, {
+      method: valor === null ? 'DELETE' : 'PUT',
+      body: JSON.stringify(valor)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return true;
+  } catch (e) {
+    console.error(e);
+    alert("⚠️ Não consegui salvar na nuvem. Verifique a internet e as regras do Firebase. A alteração ficou só neste aparelho.");
+    return false;
+  }
+}
+
+// Envia para a nuvem os canais que você já criou antes neste aparelho
+async function migrarExtrasAntigos() {
+  const antigo = localStorage.getItem(STORAGE_KEY + '_extras');
+  if (!antigo || !nuvemAtiva()) return;
+  let tudoOk = true;
+  try {
+    const extras = JSON.parse(antigo);
+    for (const ex of extras) {
+      const k = fbKey(ex.channel.id);
+      if (!SHARED.extras[k]) {
+        const ok = await escreverShared('extras/' + k, { category: ex.category, channel: ex.channel });
+        if (!ok) tudoOk = false;
+      }
+    }
+  } catch (e) { tudoOk = false; }
+  if (tudoOk) localStorage.removeItem(STORAGE_KEY + '_extras');
+}
+
+async function verificarAtualizacoes() {
+  if (!nuvemAtiva() || API_CANAIS.length === 0) return;
+  if (document.getElementById('modalCanal').classList.contains('show')) return;
+  if (document.getElementById('modalSenha').classList.contains('show')) return;
+  try {
+    const res = await fetch(`${FIREBASE_URL}/i9tv.json`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const novo = normalizarShared(await res.json());
+    if (JSON.stringify(novo) !== JSON.stringify(SHARED)) {
+      SHARED = novo;
+      gravarCacheShared();
+      reconstruir(true);
+    }
+  } catch (e) {}
+}
+setInterval(verificarAtualizacoes, 15000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) verificarAtualizacoes();
+});
+
+// ==========================================
+// CARREGAMENTO DA API + MONTAGEM DAS CATEGORIAS
+// ==========================================
 async function sincronizarAPI(forcar = false) {
-  channelsContainer.innerHTML = '<div class="loading-msg">⏳ Sincronizando canais de api.reidoscanais.im...</div>';
+  channelsContainer.innerHTML = '<div class="loading-msg">⏳ Sincronizando canais...</div>';
   nowCat.textContent = "SINCRONIZANDO";
   nowName.textContent = "Buscando grade de canais...";
   nowEpg.textContent = "";
 
   try {
+    await carregarShared();
+
     const res = await fetch(`${API}/channels`);
     if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
     const json = await res.json();
@@ -706,15 +820,10 @@ async function sincronizarAPI(forcar = false) {
       throw new Error("Formato de resposta inesperado da API.");
     }
 
-    const mapaCategorias = {};
-    const todosCanaisFormatados = [];
-    let globoSergipeObj = null;
+    API_CANAIS = [];
 
     json.data.forEach((item, idx) => {
       const catName = (item.category && String(item.category).trim()) ? String(item.category).trim() : "Geral";
-      if (!mapaCategorias[catName]) {
-        mapaCategorias[catName] = [];
-      }
 
       let embeds = [];
       if (Array.isArray(item.embeds)) {
@@ -742,62 +851,17 @@ async function sincronizarAPI(forcar = false) {
         epg: item.epg || null
       };
 
-      // Se for o canal da Globo retornado pela API, converte para Globo Sergipe
       const ehGlobo = `${canalObj.id} ${canalObj.name}`.toLowerCase().includes('globo');
       if (ehGlobo) {
         canalObj = configurarGloboSergipe(canalObj, embeds[0]?.embed_url || '');
-        globoSergipeObj = { ...canalObj, category: "Globo" };
       }
 
-      mapaCategorias[catName].push(canalObj);
-      todosCanaisFormatados.push(canalObj);
+      API_CANAIS.push({ category: catName, channel: canalObj });
     });
 
-    CATEGORIES = [];
+    await migrarExtrasAntigos();
 
-    if (todosCanaisFormatados.length > 0) {
-      CATEGORIES.push({
-        name: "Todos os Canais",
-        channels: todosCanaisFormatados
-      });
-    }
-
-    // Categoria dedicada "Globo" com a Globo Sergipe
-    if (globoSergipeObj) {
-      CATEGORIES.push({
-        name: "Globo",
-        channels: [globoSergipeObj]
-      });
-    }
-
-    Object.keys(mapaCategorias).forEach(catName => {
-      CATEGORIES.push({
-        name: catName,
-        channels: mapaCategorias[catName]
-      });
-    });
-
-    // Mantém canais extras criados manualmente pelo usuário, se existirem
-    const extrasSalvos = localStorage.getItem(STORAGE_KEY + '_extras');
-    if (extrasSalvos) {
-      try {
-        const extras = JSON.parse(extrasSalvos);
-        extras.forEach(ex => {
-          let idx = CATEGORIES.findIndex(c => c.name.toLowerCase() === ex.category.toLowerCase());
-          if (idx === -1) {
-            CATEGORIES.push({ name: ex.category, channels: [] });
-            idx = CATEGORIES.length - 1;
-          }
-          CATEGORIES[idx].channels.push(ex.channel);
-          if (CATEGORIES[0]?.name === "Todos os Canais") {
-            CATEGORIES[0].channels.push(ex.channel);
-          }
-        });
-      } catch (e) {}
-    }
-
-    rebuildALL();
-    renderTabs();
+    reconstruir(false);
 
     if (CATEGORIES.length > 0 && CATEGORIES[0].channels.length > 0) {
       playChannel(0, 0);
@@ -817,6 +881,85 @@ async function sincronizarAPI(forcar = false) {
       </div>
     `;
   }
+}
+
+// Junta: canais da API + canais extras da família - removidos + edições
+function reconstruir(preservar) {
+  let idAtual = null, catAtual = null;
+  if (preservar && CATEGORIES[currentCatIndex]) {
+    catAtual = CATEGORIES[currentCatIndex].name;
+    idAtual = CATEGORIES[currentCatIndex].channels[currentChanIndex]?.id;
+  }
+
+  let lista = API_CANAIS.map(x => ({ category: x.category, channel: x.channel }));
+  Object.values(SHARED.extras).forEach(ex => {
+    if (ex && ex.channel && ex.category) lista.push({ category: ex.category, channel: ex.channel });
+  });
+
+  lista = lista.filter(x => !SHARED.removed[fbKey(x.channel.id)]);
+
+  lista = lista.map(x => {
+    const ov = SHARED.overrides[fbKey(x.channel.id)];
+    if (!ov) return x;
+    return {
+      category: ov.category || x.category,
+      channel: {
+        ...x.channel,
+        name: ov.name,
+        url: ov.url,
+        logo: ov.logo || '',
+        embeds: [{ provider: "Personalizado", quality: "HD", embed_url: ov.url }]
+      }
+    };
+  });
+
+  const nomes = new Map();
+  const mapa = {};
+  const todos = [];
+  lista.forEach(({ category, channel }) => {
+    const low = category.toLowerCase();
+    if (!nomes.has(low)) { nomes.set(low, category); mapa[category] = []; }
+    mapa[nomes.get(low)].push(channel);
+    todos.push(channel);
+  });
+
+  CATEGORIES = [];
+  if (todos.length > 0) CATEGORIES.push({ name: "Todos os Canais", channels: todos });
+  const globo = todos.find(c => c.id === 'globose');
+  if (globo) CATEGORIES.push({ name: "Globo", channels: [globo] });
+  Object.keys(mapa).forEach(n => CATEGORIES.push({ name: n, channels: mapa[n] }));
+
+  rebuildALL();
+  renderTabs();
+
+  if (!preservar) return;
+
+  // Mantém o canal que está tocando, sem reiniciar o vídeo
+  const ci = CATEGORIES.findIndex(c => c.name === catAtual);
+  const chi = ci >= 0 ? CATEGORIES[ci].channels.findIndex(c => c.id === idAtual) : -1;
+  if (ci >= 0 && chi >= 0) {
+    currentCatIndex = ci;
+    currentChanIndex = chi;
+    document.querySelectorAll(".tab").forEach((btn, idx) => btn.classList.toggle("active", idx === ci));
+    const termo = document.getElementById("searchInput").value;
+    if (termo.trim()) {
+      filtrarCanais(termo);
+    } else {
+      channelSectionTitle.textContent = `Canais: ${CATEGORIES[ci].name} (${CATEGORIES[ci].channels.length})`;
+      renderChannels(ci, idAtual);
+    }
+  } else if (CATEGORIES.length > 0) {
+    const alvo = ci >= 0 ? ci : 0;
+    playChannel(alvo, 0);
+  }
+}
+
+function tocarPorId(id, catNome) {
+  let ci = CATEGORIES.findIndex(c => c.name.toLowerCase() === String(catNome).toLowerCase());
+  if (ci < 0) ci = 0;
+  let chi = CATEGORIES[ci].channels.findIndex(c => c.id === id);
+  if (chi < 0) chi = 0;
+  playChannel(ci, chi);
 }
 
 function rebuildALL() {
@@ -1110,7 +1253,7 @@ function fecharCanal() {
   document.getElementById('modalCanal').classList.remove('show');
 }
 
-function salvarCanal() {
+async function salvarCanal() {
   const nome = document.getElementById('inputNome').value.trim();
   const url = document.getElementById('inputUrl').value.trim();
   const categoria = document.getElementById('inputCategoria').value.trim();
@@ -1123,83 +1266,47 @@ function salvarCanal() {
     return;
   }
 
-  if (editCatIdx !== -1 && editChanIdx !== -1) {
-    const catAntiga = CATEGORIES[editCatIdx];
-    const chanAntigo = catAntiga.channels[editChanIdx];
-    const atualizado = {
-      ...chanAntigo,
-      name: nome,
-      url: url,
-      logo: logo,
-      embeds: [{ provider: "Personalizado", quality: "HD", embed_url: url }]
-    };
+  const embeds = [{ provider: "Personalizado", quality: "HD", embed_url: url }];
+  let idFinal;
 
-    if (catAntiga.name.toLowerCase() === categoria.toLowerCase()) {
-      catAntiga.channels[editChanIdx] = atualizado;
+  if (editCatIdx !== -1 && editChanIdx !== -1) {
+    const ch = CATEGORIES[editCatIdx]?.channels[editChanIdx];
+    if (!ch) { fecharCanal(); return; }
+    idFinal = ch.id;
+    const k = fbKey(ch.id);
+    if (ch.isCustom) {
+      await escreverShared('extras/' + k, {
+        category: categoria,
+        channel: { ...ch, name: nome, url: url, logo: logo, embeds: embeds, isCustom: true }
+      });
     } else {
-      catAntiga.channels.splice(editChanIdx, 1);
-      let novaCatIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
-      if (novaCatIndex === -1) {
-        CATEGORIES.push({ name: categoria, channels: [] });
-        novaCatIndex = CATEGORIES.length - 1;
-      }
-      CATEGORIES[novaCatIndex].channels.push(atualizado);
+      await escreverShared('overrides/' + k, { name: nome, url: url, logo: logo, category: categoria });
     }
   } else {
-    let catIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
-    if (catIndex === -1) {
-      CATEGORIES.push({ name: categoria, channels: [] });
-      catIndex = CATEGORIES.length - 1;
-    }
-    const novoCanal = {
-      id: "custom_" + Date.now(),
-      url: url,
-      name: nome,
-      logo: logo,
-      isCustom: true,
-      embeds: [{ provider: "Personalizado", quality: "HD", embed_url: url }],
-      epg: null
-    };
-    CATEGORIES[catIndex].channels.push(novoCanal);
-    if (CATEGORIES[0]?.name === "Todos os Canais") {
-      CATEGORIES[0].channels.push(novoCanal);
-    }
-    salvarExtrasLocais();
-  }
-
-  rebuildALL();
-  renderTabs();
-  
-  let finalCatIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
-  playChannel(finalCatIndex, CATEGORIES[finalCatIndex].channels.length - 1);
-  fecharCanal();
-}
-
-function salvarExtrasLocais() {
-  const extras = [];
-  CATEGORIES.forEach(cat => {
-    if (["Todos os Canais", "Globo"].includes(cat.name)) return;
-    cat.channels.forEach(ch => {
-      if (ch.isCustom) {
-        extras.push({ category: cat.name, channel: ch });
-      }
+    idFinal = "custom_" + Date.now();
+    await escreverShared('extras/' + fbKey(idFinal), {
+      category: categoria,
+      channel: { id: idFinal, url: url, name: nome, logo: logo, isCustom: true, embeds: embeds, epg: null }
     });
-  });
-  localStorage.setItem(STORAGE_KEY + '_extras', JSON.stringify(extras));
+  }
+
+  fecharCanal();
+  reconstruir(false);
+  tocarPorId(idFinal, categoria);
 }
 
-function removerCanal(event, catIdx, chanIdx) {
+async function removerCanal(event, catIdx, chanIdx) {
   event.stopPropagation();
-  if (confirm("Tem certeza que deseja remover este canal?")) {
-    CATEGORIES[catIdx].channels.splice(chanIdx, 1);
-    salvarExtrasLocais();
-    rebuildALL();
-    renderTabs();
-    
-    if (currentCatIndex === catIdx && CATEGORIES[catIdx].channels.length > 0) {
-      playChannel(catIdx, 0);
-    }
-  }
+  const ch = CATEGORIES[catIdx]?.channels[chanIdx];
+  if (!ch) return;
+  if (!confirm("Tem certeza que deseja remover este canal para TODOS?")) return;
+
+  const k = fbKey(ch.id);
+  if (ch.isCustom) await escreverShared('extras/' + k, null);
+  else await escreverShared('removed/' + k, true);
+
+  // se o canal removido estava tocando, reconstruir(true) troca para outro
+  reconstruir(true);
 }
 
 // ==========================================
