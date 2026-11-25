@@ -44,11 +44,12 @@
   }
 
   .brand {
-    padding: 20px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
   }
   .brand-title { display: flex; align-items: center; gap: 10px; }
   .brand .dot {
@@ -62,20 +63,24 @@
     -webkit-background-clip: text; color: transparent;
   }
 
-  /* BOTÃO ADICIONAR CANAL */
+  .brand-actions {
+    display: flex;
+    gap: 6px;
+  }
+
   .btn-add-channel {
     background: rgba(124,92,255,0.15);
     color: var(--accent);
     border: 1px solid rgba(124,92,255,0.3);
     padding: 6px 10px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.2s;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
   }
   .btn-add-channel:hover {
     background: var(--accent);
@@ -83,9 +88,43 @@
     border-color: transparent;
   }
 
+  .btn-sync {
+    background: rgba(0,216,180,0.12);
+    color: var(--accent2);
+    border: 1px solid rgba(0,216,180,0.3);
+    padding: 6px 9px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .btn-sync:hover {
+    background: var(--accent2);
+    color: #000;
+  }
+
+  .search-box {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--line);
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+  }
+  .search-box input:focus {
+    border-color: var(--accent);
+  }
+
   .categories-section {
     flex: 0 0 auto;
-    max-height: 40%;
+    max-height: 36%;
     display: flex;
     flex-direction: column;
     border-bottom: 1px solid var(--line);
@@ -96,7 +135,7 @@
     text-transform: uppercase;
     color: var(--muted);
     letter-spacing: 1px;
-    padding: 12px 16px 4px;
+    padding: 10px 16px 4px;
     font-weight: 700;
   }
 
@@ -112,7 +151,7 @@
   .tabs::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
 
   .tab {
-    padding: 10px 14px;
+    padding: 9px 14px;
     border-radius: 8px;
     text-align: left;
     font-size: 13px;
@@ -122,12 +161,22 @@
     background: transparent;
     border: 1px solid transparent;
     transition: 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   .tab:hover { background: rgba(255,255,255,0.03); color: #fff; }
   .tab.active {
     background: rgba(124,92,255,0.15);
     color: var(--accent);
     border-color: rgba(124,92,255,0.3);
+  }
+  .tab-count {
+    font-size: 11px;
+    opacity: 0.7;
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 10px;
   }
 
   .channels-section {
@@ -163,7 +212,6 @@
     border-color: var(--accent2); background: rgba(0, 216, 180, 0.1);
   }
 
-  /* BOTÕES DE AÇÃO NO CARD (EDITAR E APAGAR) */
   .ch-card-actions {
     position: absolute; top: 4px; right: 4px;
     display: none; gap: 2px; z-index: 10;
@@ -252,10 +300,7 @@
   }
   .edge-tap.left { left: 0; }
   .edge-tap.right { right: 0; }
-  
-  .edge-tap:active {
-    background: rgba(255, 255, 255, 0.3);
-  }
+  .edge-tap:active { background: rgba(255, 255, 255, 0.3); }
 
   .player-wrapper:fullscreen {
     max-width: 100%;
@@ -294,12 +339,13 @@
     border: 1px solid var(--line);
     border-top: none;
     transition: 0.3s;
+    gap: 10px;
   }
 
   .nav-btn {
-    width: 46px; height: 46px; border-radius: 12px;
-    display: grid; place-items: center;
-    font-size: 24px; font-weight: bold; color: #fff;
+    width: 44px; height: 44px; border-radius: 12px;
+    display: grid; place-items: center; flex-shrink: 0;
+    font-size: 22px; font-weight: bold; color: #fff;
     cursor: pointer; background: rgba(255,255,255,0.05);
     border: 1px solid var(--line); transition: 0.2s;
   }
@@ -307,23 +353,42 @@
   .nav-btn:active { transform: scale(0.95); }
 
   .now-playing {
-    text-align: center; flex: 1; padding: 0 10px;
+    text-align: center; flex: 1; padding: 0 6px; min-width: 0;
   }
   .now-cat {
-    font-size: 11px; color: var(--accent2); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 2px; display: block;
+    font-size: 10px; color: var(--accent2); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 2px; display: block;
   }
   .now-name {
-    font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+    font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+  }
+  .now-epg {
+    font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; margin-top: 2px;
+  }
+
+  .server-select {
+    background: rgba(255,255,255,0.06);
+    color: var(--txt);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    max-width: 145px;
+  }
+  .server-select option {
+    background: #121724;
+    color: #fff;
   }
 
   .counter {
     font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.05);
     padding: 6px 12px; border-radius: 20px; border: 1px solid var(--line);
+    white-space: nowrap;
   }
 
-  /* =========================================
-     ESTILOS DOS MODAIS (ADICIONAR E EDITAR)
-     ========================================= */
+  /* MODAIS */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.8);
     backdrop-filter: blur(5px); z-index: 10000;
@@ -355,24 +420,34 @@
   .btn-confirm { background: var(--accent); color: #fff; }
   .btn-confirm:hover { background: #5b3cff; }
 
+  .loading-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 30px 10px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
   @media (max-width: 850px) {
     .layout { flex-direction: column; }
     .main-content { order: 1; padding: 10px; flex: none; background: var(--bg); }
     .player-wrapper { max-width: 100%; }
-    .player-bar { padding: 8px 12px; gap: 4px; }
+    .player-bar { padding: 8px 10px; gap: 6px; }
     .nav-btn { width: 36px; height: 36px; font-size: 18px; }
     .now-playing .now-name { font-size: 14px; }
     .now-playing .now-cat { font-size: 9px; }
+    .now-playing .now-epg { font-size: 10px; }
     .counter { display: none; }
+    .server-select { max-width: 95px; font-size: 10px; padding: 4px; }
 
     .sidebar { order: 2; width: 100%; flex: 1; border-right: none; border-top: 1px solid var(--line); overflow: hidden; }
     .brand { display: none; }
     .categories-section { max-height: none; border-bottom: none; }
     .section-title { display: none; }
 
-    .tabs { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 10px; gap: 8px; border-bottom: 1px solid var(--line); }
+    .tabs { flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 8px 10px; gap: 8px; border-bottom: 1px solid var(--line); }
     .tabs::-webkit-scrollbar { display: none; }
-    .tab { white-space: nowrap; padding: 8px 16px; border-radius: 20px; font-size: 13px; }
+    .tab { white-space: nowrap; padding: 7px 14px; border-radius: 20px; font-size: 12px; gap: 6px; }
 
     .channels-section { flex: 1; overflow: hidden; }
     .channels-container { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); padding: 10px; gap: 8px; }
@@ -381,7 +456,7 @@
     .ch-name { font-size: 9px; }
 
     .edge-tap { width: 15px; }
-    .ch-card-actions { display: flex; opacity: 0.7; } /* Mostra no celular também */
+    .ch-card-actions { display: flex; opacity: 0.7; }
   }
 </style>
 </head>
@@ -394,15 +469,25 @@
         <div class="dot"></div>
         <h1><span>i9</span>tv</h1>
       </div>
-      <button class="btn-add-channel" onclick="abrirSenha('add')">➕ Inserir Canal</button>
+      <div class="brand-actions">
+        <button class="btn-sync" onclick="sincronizarAPI(true)" title="Atualizar lista da API">🔄</button>
+        <button class="btn-add-channel" onclick="abrirSenha('add')">➕ Canal</button>
+      </div>
     </div>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar canal ou programação..." oninput="filtrarCanais(this.value)">
+    </div>
+
     <div class="categories-section">
       <div class="section-title">Categorias</div>
       <div class="tabs" id="tabs"></div>
     </div>
     <div class="channels-section">
       <div class="section-title" id="channelSectionTitle">Canais</div>
-      <div class="channels-container" id="channelsContainer"></div>
+      <div class="channels-container" id="channelsContainer">
+        <div class="loading-msg">⏳ Carregando canais da API...</div>
+      </div>
     </div>
   </aside>
 
@@ -419,9 +504,11 @@
       <div class="player-bar" id="playerBar">
         <button class="nav-btn" id="prevBtn" title="Canal Anterior">−</button>
         <div class="now-playing">
-          <span class="now-cat" id="nowCat">...</span>
-          <span class="now-name" id="nowName">...</span>
+          <span class="now-cat" id="nowCat">CARREGANDO...</span>
+          <span class="now-name" id="nowName">Aguarde a API...</span>
+          <span class="now-epg" id="nowEpg"></span>
         </div>
+        <select class="server-select" id="serverSelect" style="display: none;" onchange="trocarServidor(this.value)" title="Trocar Servidor"></select>
         <span class="counter" id="counter">0 / 0</span>
         <button class="nav-btn" id="fsBtn" title="Tela Cheia" style="font-size: 16px;">⛶</button>
         <button class="nav-btn" id="nextBtn" title="Próximo Canal">+</button>
@@ -448,7 +535,6 @@
   <div class="modal-box">
     <h2 id="modalCanalTitle">📺 Adicionar Novo Canal</h2>
     
-    <!-- Campos ocultos para modo de edição -->
     <input type="hidden" id="editCatIdx" value="-1">
     <input type="hidden" id="editChanIdx" value="-1">
 
@@ -473,6 +559,9 @@
 </div>
 
 <script>
+// ==========================================
+// ADBLOCK / ANTI-POPUP
+// ==========================================
 (function(){
   if (window.__adblock_injected) return;
   window.__adblock_injected = true;
@@ -495,7 +584,6 @@
       var u = String(url).toLowerCase();
       for (var i = 0; i < adWords.length; i++) {
         if (u.indexOf(adWords[i]) !== -1) {
-          console.warn("AdBlock: Popup bloqueado -> " + u);
           return _safeWin;
         }
       }
@@ -525,360 +613,16 @@
 
 <script>
 // ==========================================
-// SISTEMA DE ADICIONAR / EDITAR CANAIS
+// CONFIGURAÇÃO DA API REI DOS CANAIS
 // ==========================================
-const SENHA_CORRETA = "bpa6tfor";
-let acaoPendente = "add"; // 'add' ou 'edit'
-let canalParaEditar = { catIdx: -1, chanIdx: -1 };
+const API = 'https://api.reidoscanais.im';
+const FALLBACK_PLAYER_BASE = 'https://rdcanais.org/';
+const STORAGE_KEY = 'i9tv_api_reidoscanais_v4';
 
-function abrirSenha(acao) {
-  acaoPendente = acao;
-  document.getElementById('modalSenha').classList.add('show');
-  document.getElementById('inputSenha').value = '';
-  setTimeout(() => document.getElementById('inputSenha').focus(), 100);
-}
+localStorage.removeItem('i9tv_canais_custom');
 
-function fecharSenha() {
-  document.getElementById('modalSenha').classList.remove('show');
-}
-
-function verificarSenha() {
-  const senha = document.getElementById('inputSenha').value;
-  if (senha === SENHA_CORRETA) {
-    fecharSenha();
-    if (acaoPendente === 'add') {
-      abrirModalCanal();
-    } else {
-      abrirModalEdicao();
-    }
-  } else {
-    alert("Senha incorreta!");
-  }
-}
-
-function abrirSenhaEdicao(catIdx, chanIdx) {
-  canalParaEditar = { catIdx, chanIdx };
-  abrirSenha('edit');
-}
-
-// Preenche o modal para adicionar
-function abrirModalCanal() {
-  document.getElementById('modalCanalTitle').textContent = "📺 Adicionar Novo Canal";
-  document.getElementById('editCatIdx').value = "-1";
-  document.getElementById('editChanIdx').value = "-1";
-  
-  // Preencher categorias no datalist
-  const datalist = document.getElementById('listaCategorias');
-  datalist.innerHTML = '';
-  CATEGORIES.forEach(cat => {
-    const opt = document.createElement('option');
-    opt.value = cat.name;
-    datalist.appendChild(opt);
-  });
-
-  document.getElementById('modalCanal').classList.add('show');
-  document.getElementById('inputNome').value = '';
-  document.getElementById('inputUrl').value = '';
-  document.getElementById('inputCategoria').value = '';
-  document.getElementById('inputLogo').value = '';
-  setTimeout(() => document.getElementById('inputNome').focus(), 100);
-}
-
-// Preenche o modal para edição
-function abrirModalEdicao() {
-  const { catIdx, chanIdx } = canalParaEditar;
-  const cat = CATEGORIES[catIdx];
-  const ch = cat.channels[chanIdx];
-
-  document.getElementById('modalCanalTitle').textContent = "✏️ Editar Canal";
-  document.getElementById('editCatIdx').value = catIdx;
-  document.getElementById('editChanIdx').value = chanIdx;
-
-  // Preencher categorias no datalist
-  const datalist = document.getElementById('listaCategorias');
-  datalist.innerHTML = '';
-  CATEGORIES.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.name;
-    datalist.appendChild(opt);
-  });
-
-  document.getElementById('modalCanal').classList.add('show');
-  document.getElementById('inputNome').value = ch[1];
-  document.getElementById('inputUrl').value = ch[0];
-  document.getElementById('inputCategoria').value = cat.name;
-  document.getElementById('inputLogo').value = ch[2] || '';
-}
-
-function fecharCanal() {
-  document.getElementById('modalCanal').classList.remove('show');
-}
-
-function salvarCanal() {
-  const nome = document.getElementById('inputNome').value.trim();
-  const url = document.getElementById('inputUrl').value.trim();
-  const categoria = document.getElementById('inputCategoria').value.trim();
-  const logo = document.getElementById('inputLogo').value.trim();
-  const editCatIdx = parseInt(document.getElementById('editCatIdx').value);
-  const editChanIdx = parseInt(document.getElementById('editChanIdx').value);
-
-  if (!nome || !url || !categoria) {
-    alert("Por favor, preencha o Nome, a URL e a Categoria.");
-    return;
-  }
-
-  const logoFinal = logo || "https://i.imgur.com/eXwJ5wK.png"; // Logo padrão se ficar em branco
-
-  if (editCatIdx !== -1 && editChanIdx !== -1) {
-    // MODO EDIÇÃO
-    const catAntiga = CATEGORIES[editCatIdx];
-    const chanAntigo = catAntiga.channels[editChanIdx];
-    
-    // Verifica se mudou de categoria
-    if (catAntiga.name.toLowerCase() === categoria.toLowerCase()) {
-      // Mesma categoria: só atualiza os dados
-      catAntiga.channels[editChanIdx] = [url, nome, logoFinal];
-    } else {
-      // Mudou de categoria: remove da antiga e adiciona na nova
-      catAntiga.channels.splice(editChanIdx, 1);
-      
-      let novaCatIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
-      if (novaCatIndex === -1) {
-        CATEGORIES.push({ name: categoria, channels: [] });
-        novaCatIndex = CATEGORIES.length - 1;
-      }
-      CATEGORIES[novaCatIndex].channels.push([url, nome, logoFinal]);
-    }
-    alert("Canal atualizado com sucesso!");
-  } else {
-    // MODO ADIÇÃO
-    let catIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
-    if (catIndex === -1) {
-      CATEGORIES.push({ name: categoria, channels: [] });
-      catIndex = CATEGORIES.length - 1;
-    }
-    CATEGORIES[catIndex].channels.push([url, nome, logoFinal]);
-    alert("Canal adicionado com sucesso!");
-  }
-
-  salvarCanaisLocais();
-  rebuildALL();
-  renderTabs();
-  
-  // Vai para a categoria onde o canal foi salvo
-  let finalCatIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
-  playChannel(finalCatIndex, CATEGORIES[finalCatIndex].channels.length - 1);
-  
-  fecharCanal();
-}
-
-function salvarCanaisLocais() {
-  localStorage.setItem('i9tv_canais_custom', JSON.stringify(CATEGORIES));
-}
-
-function removerCanal(event, catIdx, chanIdx) {
-  event.stopPropagation();
-  if (confirm("Tem certeza que deseja remover este canal?")) {
-    CATEGORIES[catIdx].channels.splice(chanIdx, 1);
-    salvarCanaisLocais();
-    rebuildALL();
-    renderTabs();
-    
-    if (currentCatIndex === catIdx) {
-      playChannel(catIdx, 0);
-    }
-  }
-}
-
-// ==========================================
-// BASE DE DADOS INICIAL
-// ==========================================
-let CATEGORIES = [
-  {
-    name: "Filmes (Google Drive)",
-    channels: [
-      ["https://drive.google.com/file/d/1cRRbvf6SMEGoHQvnlvdVov8wO84b__X7/preview", "Guardiões da Galáxia Vol. 2 (2017)", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://drive.google.com/file/d/0ByYoqq6J6r_COE9aM1BIWVZFbFE/preview?resourcekey=0-0OtDMQJLnvmzXrjTQyYjOg", "A Rede", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://drive.google.com/file/d/1ZpWi7tTkJmhYP6ylgGVMozpNh56z2GYq/preview", "A Família Busca Pé", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://drive.google.com/file/d/0BxGPV1cw10iea1pJZGoyT1BobUU/preview?resourcekey=0-SvQexCXBSrmALbI6NQDqAw", "As Namoradas do Papai", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://drive.google.com/file/d/1usyWLbKXBYY0gikoA4TC1I1ynajts3Ry/preview", "20 Anos Mais Jovem", "https://i.imgur.com/eXwJ5wK.png"]
-    ]
-  },
-  {
-    name: "Run Time Live Channels",
-    channels: [
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=2153&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794422289&id=2968&ip=104.28.235.132&override_expiration=1500&sign=SSU6GMOgj7ghwPZ4ALbAKnrk0jzeYFAqJhgHAUlC3fQ%3D", "Home Time TV e Filmes", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=6128&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423016&id=4676&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=ulhHbsU7cgrFnhXXMEXVAffOuBEIcEzQRtuFt5ty81M%3D", "Run Time Ação", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://amg00627-amg00627c9-runtime-latam-2613.playouts.now.amagi.tv/playlist/amg00627-banijayfast-masterchefbrazil-runtimelatam/playlist.m3u8?ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&ua=Mozilla%2F5.0%20(Windows%20NT%2010.0%3B%20Win64%3B%20x64)%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)%20Chrome%2F157.0.0.0%20Safari%2F537.36%20Edg%2F157.0.0.0&dnt=0&app_bundle=&app_name=Runtime&app_store_url=&content_episode=&content_season=&content_livestream=1&content_producer_name=REPLACEME&channel_name=run&network_name=&did=aeccfda06638cdcdcf257c125d880deb&us_privacy=1NNN&gdpr_consent=0&gdpr=0&lmt=0&device_make=tablet&device_model=&coppa=REPLACEME&timestamp=1794423200&id=16048&override_expiration=1500&sign=PcYJx4qEmu7xA2XZsmPQQSpksmXGQ61pukSrXEfw81I%3D", "Run Time MasterChef", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=5589&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423361&id=6807&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=FMEE9lrFZ0YRFD%2FGmKY5Wb7VjUMvfSkh7WcFDDnojbQ%3D", "Run Time Famili", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=4865&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423447&id=6801&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=3vjaXkhiXm%2FzYcxMYVD08ZZB9I6tDmfa6ot%2FdRWzhQI%3D", "Run Time Cine Espanto", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=4864&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423520&id=6803&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=wKdY4T%2FO7J6rwp0MsEViXX1Yhqg6Oct8bQPSk85Uyr8%3D", "Run Time Crime", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=5442&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=en&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423561&id=11808&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=LwtCAMGczI4Mh4ad2WwO4xbQiPAmt0NLxQUeVMdtVd4%3D", "Run Time TC Brasil", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=2553&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423597&id=4678&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=OSynTkgr4MQa%2BOGviRv5H4KhtbvCYgCG%2F32B%2FCNDod8%3D", "Run Time Comedia", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=6133&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=pt-br&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794423638&id=6805&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=Y%2FQLzkpvgt5Nsnawn4wQu1QEWQ6B%2BDYytMOqzlBIZJM%3D", "Run Time Romance", "https://i.imgur.com/eXwJ5wK.png"]
-    ]
-  },
-  {
-    name: "Entretenimento",
-    channels: [
-      ["adultswim","Adult Swim", "adult-swim"], ["ae","A&E", "a-and-e"], ["arte1","Arte 1", "arte1"], ["bis","BIS", "bis"],
-      ["canaloff","Canal Off", "canal-off"], ["curta","Curta!", "curta"], ["discoveryheh","Discovery H&H", "discovery-home-health"],
-      ["e","E!", "e"], ["fashiontv","Fashion TV", "fashion-tv"], ["foodnetwork","Food Network", "food-network"],
-      ["globoplaynovelas","Globoplay Novelas", "globoplay-novelas"], ["gnt","GNT", "gnt"], ["hgtv","HGTV", "hgtv"],
-      ["modoviagem","Modo Viagem", "modo-viagem"], ["multishow","Multishow", "multishow"], ["tlc","TLC", "tlc"],
-      ["https://5c483b9d1019c.streamlock.net/8054/8054/playlist.m3u8", "Chroma TV", "https://i.imgur.com/SnaIMgj.png"],
-      ["http://wz4.dnip.com.br/fratevitv/fratevitv.sdp/playlist.m3u8", "TV Viçosa", "https://i.imgur.com/TZF55f9.png"]
-    ]
-  },
-  {
-    name: "Notícias",
-    channels: [
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=5431&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=en&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794421562&id=11709&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=sqRc0PvZoxK3j5hg%2FK2FvHTr2w%2FnWGNLJ%2FGv5InLW6I%3D", "Record News", "record-news"],
-      ["https://dai.google.com/linear/hls/event/1XSOdtQ0SH2G8OEmEfGgjQ/master.m3u8", "SBT News", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_JbcNE6RCucsFU6VM18cY5tIxFKNPziL3VUsUnOB6Hw&s=10"],
-      ["http://170.83.49.66:8083/JOVEMPANNEWSHD/index.m3u8", "Jovem Pan News", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTysDJJwUkJYCn5dhjN61jiJyAz2g-mn0Iz7p0kTwViTA&s=10"],
-      ["agromais","AgroMais", "agro-mais"], ["cnnbrasil","CNN Brasil", "cnn-brasil"],
-      ["globonews","GloboNews", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTRwg6P-85arNdhiVud3fae4FA6wCdxeLWhodl8xZwXVw&s=10"], 
-      ["https://5cf4a2c2512a2.streamlock.net/8104/8104/playlist.m3u8", "TV Sim Cachoeiro", "https://i.imgur.com/t5oUK3C.png"],
-      ["https://5cf4a2c2512a2.streamlock.net/8236/8236/playlist.m3u8", "TV Sim São Mateus", "https://i.imgur.com/t5oUK3C.png"]
-    ]
-  },
-  {
-    name: "Esportes",
-    channels: [
-      ["cazetv","Cazé TV", "caze-tv"], ["cazetv2","Cazé TV 2", "caze-tv-2"], ["cazetv3","Cazé TV 3", "caze-tv-3"],
-      ["combate","Combate", "combate"], ["nsports","N Sports", "n-sports"], ["premiereclubes","Premiere Clubes", "premiere"],
-      ["premiere2","Premiere 2", "premiere-2"], ["premiere3","Premiere 3", "premiere-3"], ["premiere4","Premiere 4", "premiere-4"],
-      ["premiere5","Premiere 5", "premiere-5"], ["premiere6","Premiere 6", "premiere-6"], ["premiere7","Premiere 7", "premiere-7"],
-      ["premiere8","Premiere 8", "premiere-8"], ["sportv","SporTV", "sportv"], ["sportv2","SporTV 2", "sportv2"],
-      ["sportv3","SporTV 3", "sportv3"],
-      ["http://181.78.197.59:8000/play/a07z/index.m3u8", "ESPN", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/ESPN_wordmark.svg/960px-ESPN_wordmark.svg.png"],
-      ["http://181.78.197.59:8000/play/a07n/index.m3u8", "ESPN 4", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/ESPN_4_logo.svg/960px-ESPN_4_logo.svg.png"]
-    ]
-  },
-  {
-    name: "Filmes e Séries",
-    channels: [
-      ["amc","AMC", "amc"], ["axn","AXN", "axn"], ["canalbrasil","Canal Brasil", "canal-brasil"], ["cinemax","Cinemax", "cinemax"],
-      ["discoveryid","Discovery ID", "investigation-discovery"], ["hbo","HBO", "hbo"], ["hbo2","HBO 2", "hbo-2"],
-      ["hbofamily","HBO Family", "hbo-family"], ["hbosignature","HBO Signature", "hbo-signature"], ["hboxtreme","HBO Xtreme", "hbo-xtreme"],
-      ["hboplus","HBO Plus", "hbo-plus"], ["lifetime","Lifetime", "lifetime"], ["megapix","Megapix", "megapix"],
-      ["sonychannel","Sony Channel", "sony-channel"], ["sonymovies","Sony Movies", "sony-movies"], ["space","Space", "space"],
-      ["studiouniversal","Studio Universal", "studio-universal"], ["telecineaction","Telecine Action", "telecine"],
-      ["telecinecult","Telecine Cult", "telecine"], ["telecinefun","Telecine Fun", "telecine"],
-      ["telecinepipoca","Telecine Pipoca", "telecine"], ["telecinepremium","Telecine Premium", "telecine"],
-      ["telecinetouch","Telecine Touch", "telecine"], ["tnt","TNT", "tnt"], ["tntnovelas","TNT Novelas", "tnt-novelas"],
-      ["tntseries","TNT Séries", "tnt-series"], ["universaltv","Universal TV", "universal-tv"], ["usa","USA", "usa"],
-      ["warnertv","Warner TV", "warner-tv"]
-    ]
-  },
-  {
-    name: "Documentários",
-    channels: [
-      ["animalplanet","Animal Planet", "animal-planet"], ["discoverychannel","Discovery Channel", "discovery-channel"],
-      ["discoveryscience","Discovery Science", "discovery-science"], ["discoverytheater","Discovery Theater", "discovery-theater"],
-      ["discoveryturbo","Discovery Turbo", "discovery-turbo"], ["discoveryworld","Discovery World", "discovery-world"],
-      ["history","History", "history"], ["history2","History 2", "history-2"],
-      ["https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8", "Futura", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Futura_logo_2019.png/512px-Futura_logo_2019.png"]
-    ]
-  },
-  {
-    name: "Parabólica Digital",
-    channels: [
-      ["globorj","TV Globo", "globo"],
-      ["https://gerenciar.vivatele.com:443/live/viva_padrao/viva2384/13.m3u8", "Record", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/RecordTV_logo_2016.svg/512px-RecordTV_logo_2016.svg.png"],
-      ["https://stmv1.srvstm.com/sistema7933/sistema7933/playlist.m3u8", "ISTV", "https://istv.com.br/wp-content/uploads/2026/02/ISTV_COLOR_2024.jpg"],
-      ["redetv","RedeTV!", "redetv"], ["saborearte","Sabor & Arte", "sabor-e-arte"],
-      ["sbt","SBT", "sbt"], ["aparecida","TV Aparecida", "tv-aparecida"],
-      ["https://tvbrasil-stream.ebc.com.br/index.m3u8", "TV Brasil", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/TV_Brasil_logo_2019.svg/512px-TV_Brasil_logo_2019.svg.png"],
-      ["https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8", "TV Cultura", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/TV_Cultura_logo.svg/512px-TV_Cultura_logo.svg.png"],
-      ["https://video24.mais.uol.com.br/live/6146.m3u8", "Canal UOL", "https://conteudo.imguol.com.br/c/play/logo_canaluol_2024.svg"],
-      ["https://play.redecinturaoverde.com.br/playlist.m3u8", "Cinturão Verde", "https://eswqkrogupaisirwcsys.supabase.co/storage/v1/object/public/mbc-media/canais/1775688612576-u0628igjimf.png"],
-      ["https://5a57bda70564a.streamlock.net/conexaotv/conexaotv.sdp/playlist.m3u8", "Conexão TV", "https://i.imgur.com/CJ9SPsZ.png"],
-      ["https://5c483b9d1019c.streamlock.net/falalitoraltv/falalitoraltv/playlist.m3u8", "Fala Litoral", "https://i.imgur.com/NF6PL8O.png"],
-      ["https://play.mbcbrasil.tv.br/playlist.m3u8", "MBC Brasil TV", "https://eswqkrogupaisirwcsys.supabase.co/storage/v1/object/public/mbc-media/canais/1775702325773-d10vtu076za.png"],
-      ["http://wz3.dnip.com.br:1935/novaeratv/novaeratv.sdp/live.m3u8", "Nova Era TV", "https://i.imgur.com/IK3F9Uq.png"],
-      ["https://5c483b9d1019c.streamlock.net/8186/8186/playlist.m3u8", "TV Clube", "https://i.imgur.com/CpXjcyE.png"],
-      ["https://5b7f3c45ab7c2.streamlock.net/8008/smil:8008.smil/playlist.m3u8?DVR=", "TV Comunitária", "https://i.imgur.com/uxefHY3.png"],
-      ["https://5cf4a2c2512a2.streamlock.net/tvmaismarica/tvmaismarica/playlist.m3u8", "TV Mais Maricá", "https://i.imgur.com/lgCRX7q.png"],
-      ["https://5a2b083e9f360.streamlock.net/tvpantanal/tvpantanal.sdp/playlist.m3u8", "TV Pantanal MS", "https://i.imgur.com/0FOmktl.png"],
-      ["https://5a57bda70564a.streamlock.net/tvpasso/tvpasso.sdp/playlist.m3u8", "TV Passo Fundo", "https://i.imgur.com/QFE6TiV.png"],
-      ["https://5cf4a2c2512a2.streamlock.net/tvsuldeminas/tvsuldeminas/playlist.m3u8", "TV Sul de Minas", "https://i.imgur.com/hPh8cxK.png"],
-      ["https://stmv5.samcast.com.br/puctvgoias/puctvgoias/playlist.m3u8", "PUC TV Goiás", "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/PUC_TV_Goi%C3%A1s_logo.png/512px-PUC_TV_Goi%C3%A1s_logo.png"],
-      ["http://streaming.procergs.com.br:1935/tve/stve/playlist.m3u8", "TVE RS", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/TVE_RS_logo.png/512px-TVE_RS_logo.png"],
-      ["https://8hzcavccys.zoeweb.tv/redeminas/ngrp:redeminas_all/playlist.m3u8", "Rede Minas", "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Rede_Minas_logo.png/512px-Rede_Minas_logo.png"],
-      ["https://stream3.camara.gov.br/tv1/manifest.m3u8", "TV Câmara", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/TV_C%C3%A2mara_logo.png/512px-TV_C%C3%A2mara_logo.png"],
-      ["https://streaming.almg.gov.br/live/tvalmg.m3u8", "TV ALMG", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/TV_ALMG_logo.png/512px-TV_ALMG_logo.png"],
-      ["https://596639ebdd89b.streamlock.net/tvuniao/tvuniao/playlist.m3u8", "TV União", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/TV_Uni%C3%A3o_logo.png/512px-TV_Uni%C3%A3o_logo.png"],
-      ["https://5f593df7851db.streamlock.net/evangelizar/tv/playlist.m3u8", "TV Evangelizar", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/TV_Evangelizar_logo_2019.png/512px-TV_Evangelizar_logo_2019.png"],
-      ["https://59f2354c05961.streamlock.net:1443/tvtropical/_definst_/tvtropical/playlist.m3u8", "TV Tropical", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/TV_Tropical_logo.png/512px-TV_Tropical_logo.png"],
-      ["http://stream2.ba.gov.br/hls-live/livepkgr/_definst_/irdeb/pgm-1.m3u8", "IRDEB TV", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://617c5175c970b.streamlock.net:4444/tvcinco/live1/playlist.m3u8", "TV Cinco", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://panel.host-live.com:19360/cn247tv/cn247tv.m3u8", "CN247 TV", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://5b7f3c45ab7c2.streamlock.net/arapuan/ngrp:arapuan_all/playlist.m3u8", "TV Arapuã", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://br5093.streamingdevideo.com.br/abc/abc/master.m3u8", "TV ABC", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://tv02.zas.media:1936/redetvparana/redetvparana/playlist.m3u8", "RedeTV! Paraná", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://video02.logicahost.com.br/wtjtvminas/wtjtvminas/playlist.m3u8", "WTJ TV Minas", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://video03.logicahost.com.br/topmixtv/topmixtv/chunklist.m3u8", "Top Mix TV", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://cdn-fundacao-2110.ciclano.io:1443/fundacao-2110/fundacao-2110/playlist.m3u8", "Fundação TV", "https://i.imgur.com/eXwJ5wK.png"],
-      ["https://stream.ads.ottera.tv/playlist.m3u8?content_livestream=1&network_id=5431&coppa=0&is_lat=0&dnt=0&td=6&us_privacy=1NNN&delivery_type=fast&did=&ifa_type=sessionid&app_bundle=&app_store_url=&app_domain=runtime.tv&app_name=Runtime&custom_targeting=web&delivery_partner=internal&custom_4=internal&player_height=720&player_width=1280&content_channel=Runtime&content_network=Runtime&content_language=en&content_cat=IAB1-5%2CIAB1-7&partner_domain=runtime.tv&content_dist_name=internal&device_make=&device_model=&device_os=web&device_language=en&preferred_language=EN&gdpr=0&custom_12=0&custom_15=en&custom_16=EN&custom_17=en&country=br&country_region=sergipe&postal_code=49000&gender=not_specified&yob=0&site_page=https%253A%252F%252Fwww.runtime.tv%252F&livestream=1&custom_param_0=&custom_param_1=tablet&custom_param_2=&custom_param_3=&custom_param_4=internal&custom_param_5=web&timestamp=1794421562&id=11709&ip=2a09%3Abac5%3Ad16%3A305a%3A%3A4d1%3Ad&override_expiration=1500&sign=sqRc0PvZoxK3j5hg%2FK2FvHTr2w%2FnWGNLJ%2FGv5InLW6I%3D", "Record News", "record-news"],
-      ["https://dai.google.com/linear/hls/event/1XSOdtQ0SH2G8OEmEfGgjQ/master.m3u8", "SBT News", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_JbcNE6RCucsFU6VM18cY5tIxFKNPziL3VUsUnOB6Hw&s=10"],
-      ["https://player-tvcultura.stream.uol.com.br/live/tvcultura_lsd.m3u8", "Futura", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Futura_logo_2019.png/512px-Futura_logo_2019.png"],
-      ["https://evpp.mm.uol.com.br/geob_band/band/playlist.m3u8", "Band", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Bandeirantes_logo_2018.svg/512px-Bandeirantes_logo_2018.svg.png"],
-      ["http://45.162.64.114/GAZETA/index.m3u8", "TV Gazeta", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/TV_Gazeta_logo.png/512px-TV_Gazeta_logo.png"],
-      ["http://stream2.camara.leg.br:8134/tv1/manifest.m3u8", "TV Câmara", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/TV_C%C3%A2mara_logo.png/512px-TV_C%C3%A2mara_logo.png"],
-      ["https://video-rvd-lmg.rnp.br/live/ocp(t(FfZfeFx3QG4)r(TOqkzw)a(ut273w)p(d(lCo)k(ow4)m(U1zbeMZOcvuVp_PjPC5VeA)n(a(-xL_Aw)s(ye", "TV Escola", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/TV_Escola_logo.png/512px-TV_Escola_logo.png"],
-      ["https://d12e4o88jd8gex.cloudfront.net/out/v1/cea3de0b76ac4e82ab8ee0fd3f17ce12/index_1.m3u8", "Rede Vida", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Rede_Vida_logo.png/512px-Rede_Vida_logo.png"],
-      ["http://cancaonovahls-lh.akamaihd.net:80/i/tvcnpthls_1@112270/master.m3u8", "Canção Nova", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Can%C3%A7%C3%A3o_Nova_logo.png/512px-Can%C3%A7%C3%A3o_Nova_logo.png"],
-      ["https://video09.logicahost.com.br/paieterno/paieterno/chunklist_w1610240856.m3u8", "TV Pai Eterno", "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/TV_Pai_Eterno_logo.png/512px-TV_Pai_Eterno_logo.png"],
-      ["http://45.233.58.154:8000/play/a01q/index.m3u8", "CNT", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/CNT_logo.png/512px-CNT_logo.png"],
-      ["https://isaocorp.cloudecast.com/ngt/index.m3u8?ManoTV", "NGT", "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/NGT_logo.png/512px-NGT_logo.png"],
-      ["https://stream.ecast.com.br/rit-tv/index.m3u8", "RIT", "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/RIT_logo.png/512px-RIT_logo.png"],
-      ["http://187.120.222.12:8000/play/BoaVontade/index.m3u8", "Boa Vontade TV", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Boa_Vontade_TV_logo.png/512px-Boa_Vontade_TV_logo.png"],
-      ["https://stream.live.novotempo.com/tv/smil:tvnovotempo.smil/playlist.m3u8", "TV Novo Tempo", "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/TV_Novo_Tempo_logo.png/512px-TV_Novo_Tempo_logo.png"],
-      ["https://cdn.jmvstream.com/w/LVW-9375/LVW9375_6i0wPBCHYc/playlist.m3u8", "Boas Novas", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Boas_Novas_logo.png/512px-Boas_Novas_logo.png"],
-      ["https://cdn.jmvstream.com/w/LVW-8719/LVW8719_AcLVAxWy5J/playlist.m3u8", "Rede Gospel", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Rede_Gospel_logo.png/512px-Rede_Gospel_logo.png"],
-      ["http://257920-lh.akamaihd.net/i/TVSeculo21_hls@145741/master.m3u8", "Rede Século 21", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Rede_S%C3%A9culo_21_logo.png/512px-Rede_S%C3%A9culo_21_logo.png"],
-      ["https://video09.logicahost.com.br/redebrasiloficial/redebrasiloficial/playlist.m3u8", "Rede Brasil", "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Rede_Brasil_logo.png/512px-Rede_Brasil_logo.png"]
-    ]
-  },
-  {
-    name: "Infantil",
-    channels: [
-      ["cartoonnetwork","Cartoon Network", "cartoon-network"], ["cartoonito","Cartoonito", "cartoonito"],
-      ["discoverykids","Discovery Kids", "discovery-kids"], ["gloob","Gloob", "gloob"],
-      ["gloobinho","Gloobinho", "gloobinho"], ["tooncast","Tooncast", "tooncast"]
-    ]
-  },
-  {
-    name: "Religiosos",
-    channels: [
-      ["https://59fb88a1b1108.streamlock.net/fonte/_definst_/fontetv/chunklist_w1224511652.m3u8", "Fonte TV", "https://i.imgur.com/7q2BmNc.png"],
-      ["https://streamer1.streamhost.org/salive/GMI3anjoh/playlist.m3u8", "TV Terceiro Anjo", "https://i.imgur.com/PExKWNv.png"]
-    ]
-  },
-  {
-    name: "Educação e Cultura",
-    channels: [
-      ["http://flash.softhost.com.br:1935/ufg/tvufgweb/playlist.m3u8", "TV UFG", "https://i.imgur.com/Yp3dbJo.png"],
-      ["https://sitetv.brasilstream.com.br/hls/sitetv/index.m3u8?token=", "Unisul TV", "https://i.imgur.com/N0TvAFz.png"]
-    ]
-  }
-];
-
-// Carregar canais customizados salvos anteriormente
-const canaisSalvos = localStorage.getItem('i9tv_canais_custom');
-if (canaisSalvos) {
-  try {
-    const parsed = JSON.parse(canaisSalvos);
-    CATEGORIES = parsed;
-  } catch (e) {
-    console.error("Erro ao carregar canais salvos:", e);
-  }
-}
-
-const BASE_URL = "https://rdcanais.org/";
-const LOGO_BASE_URL = "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/brazil/";
-
+let CATEGORIES = [];
+let ALL = [];
 let currentCatIndex = 0;
 let currentChanIndex = 0;
 let hls = null;
@@ -887,6 +631,8 @@ const iframeEl = document.getElementById("playerIframe");
 const videoEl = document.getElementById("playerVideo");
 const nowName = document.getElementById("nowName");
 const nowCat = document.getElementById("nowCat");
+const nowEpg = document.getElementById("nowEpg");
+const serverSelect = document.getElementById("serverSelect");
 const counter = document.getElementById("counter");
 const tabsEl = document.getElementById("tabs");
 const channelsContainer = document.getElementById("channelsContainer");
@@ -894,12 +640,192 @@ const channelSectionTitle = document.getElementById("channelSectionTitle");
 const playerWrapper = document.getElementById("playerWrapper");
 const fsBtn = document.getElementById("fsBtn");
 
-let ALL = [];
+function normalizarLogo(logo) {
+  if (!logo) return "";
+  if (logo.startsWith("/")) return API + logo;
+  return logo;
+}
+
+// Ajusta a Globo única da API para priorizar a Globo Sergipe
+function configurarGloboSergipe(canalObj, baseEmbedExample) {
+  const embedsAtualizados = [];
+
+  // 1. Verifica se algum embed da própria API já é Sergipe
+  const embedSergipeExistente = (canalObj.embeds || []).find(e =>
+    `${e.provider} ${e.embed_url}`.toLowerCase().includes('sergipe') ||
+    `${e.embed_url}`.toLowerCase().includes('globose')
+  );
+
+  if (embedSergipeExistente) {
+    embedsAtualizados.push({
+      provider: 'Globo Sergipe (FULL HD)',
+      quality: embedSergipeExistente.quality || 'FULL HD',
+      embed_url: embedSergipeExistente.embed_url
+    });
+  } else {
+    // 2. Monta a URL da Globo Sergipe seguindo o padrão do player (ex: https://rdcanais.org/globose)
+    let urlSergipe = `${FALLBACK_PLAYER_BASE}globose`;
+    if (baseEmbedExample && baseEmbedExample.includes('/globo')) {
+      urlSergipe = baseEmbedExample.replace(/\/globo[^/?#]*/i, '/globose');
+    }
+    embedsAtualizados.push({
+      provider: 'Globo Sergipe (FULL HD)',
+      quality: 'FULL HD',
+      embed_url: urlSergipe
+    });
+  }
+
+  // Mantém os demais embeds originais da API como servidores alternativos no seletor
+  (canalObj.embeds || []).forEach(emb => {
+    if (!embedsAtualizados.some(e => e.embed_url === emb.embed_url)) {
+      embedsAtualizados.push(emb);
+    }
+  });
+
+  return {
+    ...canalObj,
+    id: 'globose',
+    name: 'Globo Sergipe',
+    url: embedsAtualizados[0].embed_url,
+    embeds: embedsAtualizados
+  };
+}
+
+async function sincronizarAPI(forcar = false) {
+  channelsContainer.innerHTML = '<div class="loading-msg">⏳ Sincronizando canais de api.reidoscanais.im...</div>';
+  nowCat.textContent = "SINCRONIZANDO";
+  nowName.textContent = "Buscando grade de canais...";
+  nowEpg.textContent = "";
+
+  try {
+    const res = await fetch(`${API}/channels`);
+    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+    const json = await res.json();
+
+    if (!json.success || !Array.isArray(json.data)) {
+      throw new Error("Formato de resposta inesperado da API.");
+    }
+
+    const mapaCategorias = {};
+    const todosCanaisFormatados = [];
+    let globoSergipeObj = null;
+
+    json.data.forEach((item, idx) => {
+      const catName = (item.category && String(item.category).trim()) ? String(item.category).trim() : "Geral";
+      if (!mapaCategorias[catName]) {
+        mapaCategorias[catName] = [];
+      }
+
+      let embeds = [];
+      if (Array.isArray(item.embeds)) {
+        embeds = item.embeds.map((e, i) => ({
+          provider: e.provider || `Servidor ${i + 1}`,
+          quality: e.quality || 'HD',
+          embed_url: e.embed_url || ''
+        })).filter(e => e.embed_url);
+      }
+
+      if (embeds.length === 0 && item.id) {
+        embeds.push({
+          provider: 'Principal',
+          quality: 'HD',
+          embed_url: `${FALLBACK_PLAYER_BASE}${item.id}`
+        });
+      }
+
+      let canalObj = {
+        id: item.id || `ch_${idx}`,
+        url: embeds.length > 0 ? embeds[0].embed_url : `${FALLBACK_PLAYER_BASE}${item.id}`,
+        name: item.name || `Canal ${idx + 1}`,
+        logo: normalizarLogo(item.logo_url || ""),
+        embeds: embeds,
+        epg: item.epg || null
+      };
+
+      // Se for o canal da Globo retornado pela API, converte para Globo Sergipe
+      const ehGlobo = `${canalObj.id} ${canalObj.name}`.toLowerCase().includes('globo');
+      if (ehGlobo) {
+        canalObj = configurarGloboSergipe(canalObj, embeds[0]?.embed_url || '');
+        globoSergipeObj = { ...canalObj, category: "Globo" };
+      }
+
+      mapaCategorias[catName].push(canalObj);
+      todosCanaisFormatados.push(canalObj);
+    });
+
+    CATEGORIES = [];
+
+    if (todosCanaisFormatados.length > 0) {
+      CATEGORIES.push({
+        name: "Todos os Canais",
+        channels: todosCanaisFormatados
+      });
+    }
+
+    // Categoria dedicada "Globo" com a Globo Sergipe
+    if (globoSergipeObj) {
+      CATEGORIES.push({
+        name: "Globo",
+        channels: [globoSergipeObj]
+      });
+    }
+
+    Object.keys(mapaCategorias).forEach(catName => {
+      CATEGORIES.push({
+        name: catName,
+        channels: mapaCategorias[catName]
+      });
+    });
+
+    // Mantém canais extras criados manualmente pelo usuário, se existirem
+    const extrasSalvos = localStorage.getItem(STORAGE_KEY + '_extras');
+    if (extrasSalvos) {
+      try {
+        const extras = JSON.parse(extrasSalvos);
+        extras.forEach(ex => {
+          let idx = CATEGORIES.findIndex(c => c.name.toLowerCase() === ex.category.toLowerCase());
+          if (idx === -1) {
+            CATEGORIES.push({ name: ex.category, channels: [] });
+            idx = CATEGORIES.length - 1;
+          }
+          CATEGORIES[idx].channels.push(ex.channel);
+          if (CATEGORIES[0]?.name === "Todos os Canais") {
+            CATEGORIES[0].channels.push(ex.channel);
+          }
+        });
+      } catch (e) {}
+    }
+
+    rebuildALL();
+    renderTabs();
+
+    if (CATEGORIES.length > 0 && CATEGORIES[0].channels.length > 0) {
+      playChannel(0, 0);
+    } else {
+      channelsContainer.innerHTML = '<div class="loading-msg">Nenhum canal disponível no momento.</div>';
+    }
+
+  } catch (err) {
+    console.error("Falha ao carregar API:", err);
+    nowCat.textContent = "ERRO DE CONEXÃO";
+    nowName.textContent = "Não foi possível carregar a API";
+    nowEpg.textContent = err.message;
+    channelsContainer.innerHTML = `
+      <div class="loading-msg">
+        ❌ Falha ao conectar em <b>${API}/channels</b>.<br><br>
+        <button class="btn-add-channel" style="margin: 0 auto;" onclick="sincronizarAPI(true)">Tentar Novamente</button>
+      </div>
+    `;
+  }
+}
+
 function rebuildALL() {
   ALL = [];
+  const categoriasVirtuais = ["Todos os Canais", "Globo"];
   CATEGORIES.forEach((cat, catIdx) => {
-    cat.channels.forEach(([slug, name, logoSlug], chanIdx) => {
-      ALL.push({ slug, name, category: cat.name, catIdx, chanIdx, logoSlug });
+    if (categoriasVirtuais.includes(cat.name)) return;
+    cat.channels.forEach((ch, chanIdx) => {
+      ALL.push({ ...ch, category: cat.name, catIdx, chanIdx });
     });
   });
 }
@@ -909,48 +835,28 @@ function renderTabs() {
   CATEGORIES.forEach((cat, idx) => {
     const btn = document.createElement("button");
     btn.className = "tab";
-    btn.textContent = cat.name;
-    btn.onclick = () => playChannel(idx, 0);
+    btn.innerHTML = `<span>${cat.name}</span><span class="tab-count">${cat.channels.length}</span>`;
+    btn.onclick = () => {
+      document.getElementById("searchInput").value = "";
+      playChannel(idx, 0);
+    };
     tabsEl.appendChild(btn);
   });
 }
 
-function playChannel(catIdx, chanIdx) {
-  if(catIdx < 0 || catIdx >= CATEGORIES.length) return;
-  if(chanIdx < 0 || chanIdx >= CATEGORIES[catIdx].channels.length) return;
-
-  currentCatIndex = catIdx;
-  currentChanIndex = chanIdx;
-  
-  const cat = CATEGORIES[catIdx];
-  const ch = cat.channels[chanIdx];
-  
-  let streamUrl = ch[0];
-  if (!streamUrl.startsWith('http')) {
-    streamUrl = BASE_URL + streamUrl;
-  }
-  
-  nowCat.textContent = cat.name;
-  nowName.textContent = ch[1];
-  
-  const globalIndex = ALL.findIndex(c => c.slug === ch[0]);
-  counter.textContent = (globalIndex + 1) + " / " + ALL.length;
-
-  document.querySelectorAll(".tab").forEach((btn, idx) => {
-    btn.classList.toggle("active", idx === catIdx);
-  });
-
-  channelSectionTitle.textContent = `Canais: ${cat.name}`;
-
+// ==========================================
+// REPRODUÇÃO DE STREAM & TROCA DE SERVIDORES
+// ==========================================
+function carregarStreamUrl(streamUrl) {
+  if (!streamUrl) return;
   if (hls) {
     hls.destroy();
     hls = null;
   }
-  
+
   const ehVideoDireto = /\.(mp4|webm|ogg)([?#]|$)/i.test(streamUrl);
 
   if (ehVideoDireto) {
-    // Vídeo direto (.mp4/.webm/.ogg): toca no player nativo, sem página no meio
     iframeEl.style.display = 'none';
     iframeEl.src = 'about:blank';
     videoEl.style.display = 'block';
@@ -985,51 +891,322 @@ function playChannel(catIdx, chanIdx) {
     iframeEl.style.display = 'block';
     iframeEl.src = streamUrl;
   }
-
-  renderChannels(catIdx, ch[0]);
 }
 
-function renderChannels(catIdx, activeSlug) {
+function trocarServidor(novaUrl) {
+  if (!novaUrl) return;
+  carregarStreamUrl(novaUrl);
+}
+
+function playChannel(catIdx, chanIdx) {
+  if (catIdx < 0 || catIdx >= CATEGORIES.length) return;
+  if (chanIdx < 0 || chanIdx >= CATEGORIES[catIdx].channels.length) return;
+
+  currentCatIndex = catIdx;
+  currentChanIndex = chanIdx;
+  
+  const cat = CATEGORIES[catIdx];
+  const ch = cat.channels[chanIdx];
+  
+  nowCat.textContent = cat.name;
+  nowName.textContent = ch.name;
+
+  if (ch.epg && ch.epg.current && ch.epg.current.title) {
+    let textoEpg = `🔴 Agora: ${ch.epg.current.title}`;
+    if (ch.epg.next && ch.epg.next.title) {
+      textoEpg += `  •  ⏭️ A seguir: ${ch.epg.next.title}`;
+    }
+    nowEpg.textContent = textoEpg;
+  } else {
+    nowEpg.textContent = "Transmissão Ao Vivo";
+  }
+
+  if (Array.isArray(ch.embeds) && ch.embeds.length > 1) {
+    serverSelect.style.display = 'block';
+    serverSelect.innerHTML = '';
+    ch.embeds.forEach((emb, i) => {
+      const opt = document.createElement('option');
+      opt.value = emb.embed_url;
+      const label = emb.provider || `Servidor ${i + 1}`;
+      const qual = emb.quality && !label.includes(emb.quality) ? ` (${emb.quality})` : '';
+      opt.textContent = label + qual;
+      serverSelect.appendChild(opt);
+    });
+  } else {
+    serverSelect.style.display = 'none';
+    serverSelect.innerHTML = '';
+  }
+  
+  const globalIndex = ALL.findIndex(c => c.id === ch.id && c.name === ch.name);
+  counter.textContent = (globalIndex >= 0 ? globalIndex + 1 : chanIdx + 1) + " / " + ALL.length;
+
+  document.querySelectorAll(".tab").forEach((btn, idx) => {
+    btn.classList.toggle("active", idx === catIdx);
+  });
+
+  channelSectionTitle.textContent = `Canais: ${cat.name} (${cat.channels.length})`;
+
+  carregarStreamUrl(ch.url);
+  renderChannels(catIdx, ch.id);
+}
+
+function renderChannels(catIdx, activeId) {
   channelsContainer.innerHTML = "";
   const cat = CATEGORIES[catIdx];
 
-  cat.channels.forEach(([slug, name, logoSlug], chanIdx) => {
-    const card = document.createElement("div");
-    card.className = "ch-card" + (slug === activeSlug ? " active" : "");
-    
-    let h = 0;
-    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
-    const initials = name.substring(0, 2).toUpperCase();
-    
-    let logoUrl = logoSlug;
-    if (!logoUrl.startsWith('http')) {
-        logoUrl = LOGO_BASE_URL + logoSlug + "-br.png";
-    }
-
-    // Adiciona os botões de Editar (✏️) e Apagar (🗑️)
-    card.innerHTML = `
-      <div class="ch-card-actions">
-        <button class="btn-action" onclick="abrirSenhaEdicao(${catIdx}, ${chanIdx})" title="Editar Canal">✏️</button>
-        <button class="btn-action delete" onclick="removerCanal(event, ${catIdx}, ${chanIdx})" title="Apagar Canal">🗑️</button>
-      </div>
-      <div class="ch-logo-wrapper">
-        <img src="${logoUrl}" class="ch-logo-img" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
-        <div class="ch-logo-fallback" style="--h:${h};">${initials}</div>
-      </div>
-      <div class="ch-name">${name}</div>
-    `;
-    
-    card.onclick = (e) => {
-      // Só toca o canal se não clicou nos botões de ação
-      if(e.target.tagName !== 'BUTTON') {
-        playChannel(catIdx, chanIdx);
-      }
-    };
+  cat.channels.forEach((ch, chanIdx) => {
+    const card = criarCardCanal(ch, catIdx, chanIdx, ch.id === activeId);
     channelsContainer.appendChild(card);
   });
 }
 
+function criarCardCanal(ch, catIdx, chanIdx, isActive) {
+  const card = document.createElement("div");
+  card.className = "ch-card" + (isActive ? " active" : "");
+  
+  let h = 0;
+  for (let i = 0; i < ch.name.length; i++) h = (h * 31 + ch.name.charCodeAt(i)) % 360;
+  const initials = ch.name.substring(0, 2).toUpperCase();
+  const logoUrl = ch.logo || "";
+
+  card.innerHTML = `
+    <div class="ch-card-actions">
+      <button class="btn-action" onclick="abrirSenhaEdicao(${catIdx}, ${chanIdx})" title="Editar Canal">✏️</button>
+      <button class="btn-action delete" onclick="removerCanal(event, ${catIdx}, ${chanIdx})" title="Apagar Canal">🗑️</button>
+    </div>
+    <div class="ch-logo-wrapper" style="${!logoUrl ? 'background:transparent;padding:0;' : ''}">
+      ${logoUrl ? `<img src="${logoUrl}" class="ch-logo-img" alt="${ch.name}" onerror="this.style.display='none'; this.parentElement.style.background='transparent'; this.parentElement.style.padding='0'; this.nextElementSibling.style.display='grid';">` : ''}
+      <div class="ch-logo-fallback" style="--h:${h}; ${!logoUrl ? 'display:grid;' : ''}">${initials}</div>
+    </div>
+    <div class="ch-name">${ch.name}</div>
+  `;
+  
+  card.onclick = (e) => {
+    if (e.target.tagName !== 'BUTTON') {
+      playChannel(catIdx, chanIdx);
+    }
+  };
+  return card;
+}
+
+// ==========================================
+// BUSCA LOCAL INSTANTÂNEA
+// ==========================================
+function filtrarCanais(termo) {
+  const q = termo.trim().toLowerCase();
+  if (!q) {
+    renderChannels(currentCatIndex, CATEGORIES[currentCatIndex]?.channels[currentChanIndex]?.id);
+    channelSectionTitle.textContent = `Canais: ${CATEGORIES[currentCatIndex]?.name || ''} (${CATEGORIES[currentCatIndex]?.channels.length || 0})`;
+    return;
+  }
+
+  channelsContainer.innerHTML = "";
+  const filtrados = ALL.filter(item => {
+    const matchNome = item.name.toLowerCase().includes(q);
+    const matchCat = item.category.toLowerCase().includes(q);
+    const matchEpg = item.epg?.current?.title?.toLowerCase().includes(q);
+    return matchNome || matchCat || matchEpg;
+  });
+
+  channelSectionTitle.textContent = `Busca: "${termo}" (${filtrados.length})`;
+
+  if (filtrados.length === 0) {
+    channelsContainer.innerHTML = '<div class="loading-msg">Nenhum canal encontrado.</div>';
+    return;
+  }
+
+  filtrados.forEach(item => {
+    const isActive = (item.catIdx === currentCatIndex && item.chanIdx === currentChanIndex);
+    const card = criarCardCanal(item, item.catIdx, item.chanIdx, isActive);
+    channelsContainer.appendChild(card);
+  });
+}
+
+// ==========================================
+// SISTEMA DE ADICIONAR / EDITAR CANAIS (SENHA)
+// ==========================================
+const SENHA_CORRETA = "bpa6tfor";
+let acaoPendente = "add";
+let canalParaEditar = { catIdx: -1, chanIdx: -1 };
+
+function abrirSenha(acao) {
+  acaoPendente = acao;
+  document.getElementById('modalSenha').classList.add('show');
+  document.getElementById('inputSenha').value = '';
+  setTimeout(() => document.getElementById('inputSenha').focus(), 100);
+}
+
+function fecharSenha() {
+  document.getElementById('modalSenha').classList.remove('show');
+}
+
+function verificarSenha() {
+  const senha = document.getElementById('inputSenha').value;
+  if (senha === SENHA_CORRETA) {
+    fecharSenha();
+    if (acaoPendente === 'add') {
+      abrirModalCanal();
+    } else {
+      abrirModalEdicao();
+    }
+  } else {
+    alert("Senha incorreta!");
+  }
+}
+
+function abrirSenhaEdicao(catIdx, chanIdx) {
+  canalParaEditar = { catIdx, chanIdx };
+  abrirSenha('edit');
+}
+
+function abrirModalCanal() {
+  document.getElementById('modalCanalTitle').textContent = "📺 Adicionar Novo Canal";
+  document.getElementById('editCatIdx').value = "-1";
+  document.getElementById('editChanIdx').value = "-1";
+  
+  const datalist = document.getElementById('listaCategorias');
+  datalist.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    if (cat.name === "Todos os Canais") return;
+    const opt = document.createElement('option');
+    opt.value = cat.name;
+    datalist.appendChild(opt);
+  });
+
+  document.getElementById('modalCanal').classList.add('show');
+  document.getElementById('inputNome').value = '';
+  document.getElementById('inputUrl').value = '';
+  document.getElementById('inputCategoria').value = '';
+  document.getElementById('inputLogo').value = '';
+  setTimeout(() => document.getElementById('inputNome').focus(), 100);
+}
+
+function abrirModalEdicao() {
+  const { catIdx, chanIdx } = canalParaEditar;
+  const cat = CATEGORIES[catIdx];
+  const ch = cat.channels[chanIdx];
+
+  document.getElementById('modalCanalTitle').textContent = "✏️ Editar Canal";
+  document.getElementById('editCatIdx').value = catIdx;
+  document.getElementById('editChanIdx').value = chanIdx;
+
+  const datalist = document.getElementById('listaCategorias');
+  datalist.innerHTML = '';
+  CATEGORIES.forEach(c => {
+    if (c.name === "Todos os Canais") return;
+    const opt = document.createElement('option');
+    opt.value = c.name;
+    datalist.appendChild(opt);
+  });
+
+  document.getElementById('modalCanal').classList.add('show');
+  document.getElementById('inputNome').value = ch.name;
+  document.getElementById('inputUrl').value = ch.url;
+  document.getElementById('inputCategoria').value = cat.name;
+  document.getElementById('inputLogo').value = ch.logo || '';
+}
+
+function fecharCanal() {
+  document.getElementById('modalCanal').classList.remove('show');
+}
+
+function salvarCanal() {
+  const nome = document.getElementById('inputNome').value.trim();
+  const url = document.getElementById('inputUrl').value.trim();
+  const categoria = document.getElementById('inputCategoria').value.trim();
+  const logo = document.getElementById('inputLogo').value.trim();
+  const editCatIdx = parseInt(document.getElementById('editCatIdx').value);
+  const editChanIdx = parseInt(document.getElementById('editChanIdx').value);
+
+  if (!nome || !url || !categoria) {
+    alert("Por favor, preencha o Nome, a URL e a Categoria.");
+    return;
+  }
+
+  if (editCatIdx !== -1 && editChanIdx !== -1) {
+    const catAntiga = CATEGORIES[editCatIdx];
+    const chanAntigo = catAntiga.channels[editChanIdx];
+    const atualizado = {
+      ...chanAntigo,
+      name: nome,
+      url: url,
+      logo: logo,
+      embeds: [{ provider: "Personalizado", quality: "HD", embed_url: url }]
+    };
+
+    if (catAntiga.name.toLowerCase() === categoria.toLowerCase()) {
+      catAntiga.channels[editChanIdx] = atualizado;
+    } else {
+      catAntiga.channels.splice(editChanIdx, 1);
+      let novaCatIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
+      if (novaCatIndex === -1) {
+        CATEGORIES.push({ name: categoria, channels: [] });
+        novaCatIndex = CATEGORIES.length - 1;
+      }
+      CATEGORIES[novaCatIndex].channels.push(atualizado);
+    }
+  } else {
+    let catIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
+    if (catIndex === -1) {
+      CATEGORIES.push({ name: categoria, channels: [] });
+      catIndex = CATEGORIES.length - 1;
+    }
+    const novoCanal = {
+      id: "custom_" + Date.now(),
+      url: url,
+      name: nome,
+      logo: logo,
+      isCustom: true,
+      embeds: [{ provider: "Personalizado", quality: "HD", embed_url: url }],
+      epg: null
+    };
+    CATEGORIES[catIndex].channels.push(novoCanal);
+    if (CATEGORIES[0]?.name === "Todos os Canais") {
+      CATEGORIES[0].channels.push(novoCanal);
+    }
+    salvarExtrasLocais();
+  }
+
+  rebuildALL();
+  renderTabs();
+  
+  let finalCatIndex = CATEGORIES.findIndex(c => c.name.toLowerCase() === categoria.toLowerCase());
+  playChannel(finalCatIndex, CATEGORIES[finalCatIndex].channels.length - 1);
+  fecharCanal();
+}
+
+function salvarExtrasLocais() {
+  const extras = [];
+  CATEGORIES.forEach(cat => {
+    if (["Todos os Canais", "Globo"].includes(cat.name)) return;
+    cat.channels.forEach(ch => {
+      if (ch.isCustom) {
+        extras.push({ category: cat.name, channel: ch });
+      }
+    });
+  });
+  localStorage.setItem(STORAGE_KEY + '_extras', JSON.stringify(extras));
+}
+
+function removerCanal(event, catIdx, chanIdx) {
+  event.stopPropagation();
+  if (confirm("Tem certeza que deseja remover este canal?")) {
+    CATEGORIES[catIdx].channels.splice(chanIdx, 1);
+    salvarExtrasLocais();
+    rebuildALL();
+    renderTabs();
+    
+    if (currentCatIndex === catIdx && CATEGORIES[catIdx].channels.length > 0) {
+      playChannel(catIdx, 0);
+    }
+  }
+}
+
+// ==========================================
+// NAVEGAÇÃO, TECLADO, TELA CHEIA E SWIPE
+// ==========================================
 function nextChannel() {
+  if (CATEGORIES.length === 0) return;
   const cat = CATEGORIES[currentCatIndex];
   if (currentChanIndex < cat.channels.length - 1) {
     playChannel(currentCatIndex, currentChanIndex + 1);
@@ -1039,6 +1216,7 @@ function nextChannel() {
 }
 
 function prevChannel() {
+  if (CATEGORIES.length === 0) return;
   if (currentChanIndex > 0) {
     playChannel(currentCatIndex, currentChanIndex - 1);
   } else {
@@ -1049,11 +1227,11 @@ function prevChannel() {
 
 document.getElementById("nextBtn").onclick = nextChannel;
 document.getElementById("prevBtn").onclick = prevChannel;
-
 document.getElementById("tapNext").onclick = nextChannel;
 document.getElementById("tapPrev").onclick = prevChannel;
 
 document.addEventListener("keydown", (e) => {
+  if (document.activeElement.tagName === "INPUT") return;
   if (e.key === "ArrowRight") nextChannel();
   if (e.key === "ArrowLeft") prevChannel();
 });
@@ -1101,10 +1279,8 @@ document.addEventListener('touchend', (e) => {
   }
 }, { passive: true });
 
-// Inicialização
-rebuildALL();
-renderTabs();
-playChannel(0, 0);
+// Inicialização automática via API
+sincronizarAPI(false);
 </script>
 </body>
 </html>
