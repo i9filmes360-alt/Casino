@@ -5,7 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>i9tv</title>
 <!-- BIBLIOTECA HLS.JS PARA REPRODUZIR LINKS .M3U8 -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+// DIAGNÓSTICO: mostra na tela qualquer erro de código (escrito em ES5 para rodar em TVs antigas)
+(function () {
+  var lista = [];
+  function mostrar(msg) {
+    try {
+      lista.push(msg);
+      var d = document.getElementById('diagErro');
+      if (!d) {
+        d = document.createElement('div');
+        d.id = 'diagErro';
+        d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#b00020;color:#fff;' +
+          'font:16px/1.4 sans-serif;padding:10px 16px;white-space:pre-wrap;max-height:45%;overflow:auto';
+        (document.body || document.documentElement).appendChild(d);
+      }
+      d.textContent = 'ERRO NO APP: ' + lista.slice(-3).join('  |  ') + '\nNavegador: ' + navigator.userAgent;
+    } catch (x) {}
+  }
+  window.addEventListener('error', function (e) {
+    if (!e || !e.message) return; // ignora falha de imagem/script externo
+    mostrar(e.message + (e.lineno ? ' (linha ' + e.lineno + ')' : ''));
+  }, true);
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e && e.reason;
+    mostrar('Promessa rejeitada: ' + (r && r.message ? r.message : r));
+  });
+})();
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
 <style>
   :root{
     --bg:#080a10;
@@ -561,6 +589,24 @@
   html.tv .tv-toast.show { opacity: 1; transform: none; }
 
   html.tv .modal-box { max-width: 640px; }
+
+  .tv-status { display: none; }
+  html.tv .tv-status.show, .tv-status.show.erro {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; text-align: center; padding: 6vw;
+    position: fixed; inset: 0; z-index: 8000; background: #05070c;
+  }
+  .tv-status-logo { font-size: clamp(48px, 7vw, 120px); font-weight: 900; letter-spacing: -2px; color: #fff; }
+  .tv-status-logo span { color: var(--accent2); }
+  .tv-status-title { font-size: clamp(22px, 2.6vw, 48px); font-weight: 800; }
+  .tv-status-detail { font-size: clamp(16px, 1.7vw, 30px); color: #aab3c8; max-width: 70vw; line-height: 1.4; }
+  .tv-status-hint { font-size: clamp(18px, 2vw, 36px); color: var(--accent2); margin-top: 10px; }
+  .tv-status-info { font-size: clamp(12px, 1.1vw, 20px); color: #6f7a94; margin-top: 18px; }
+  .tv-status-btn {
+    background: var(--accent); color: #fff; border: 3px solid transparent; border-radius: 12px;
+    padding: 12px 28px; font-size: clamp(16px, 1.6vw, 30px); font-weight: 800; cursor: pointer;
+  }
+  .tv-status-btn:focus { outline: 4px solid #fff; outline-offset: 3px; }
 </style>
 </head>
 <body>
@@ -632,6 +678,15 @@
   <div class="tv-info-hint">▲ ▼ trocar canal<br>◀ ▶ trocar servidor<br>OK abrir lista</div>
 </div>
 <div class="tv-toast" id="tvToast"></div>
+<div class="tv-status" id="tvStatus">
+  <div class="tv-status-logo">i9<span>tv</span></div>
+  <div class="tv-status-title" id="tvStatusTitle">Carregando canais...</div>
+  <div class="tv-status-detail" id="tvStatusDetail"></div>
+  <div class="tv-status-hint" id="tvStatusHint" style="display:none">
+    <button class="tv-status-btn" id="tvStatusBtn" onclick="sincronizarAPI(true)">Tentar de novo (OK)</button>
+  </div>
+  <div class="tv-status-info" id="tvStatusInfo"></div>
+</div>
 
 <!-- MODAL DE SENHA -->
 <div class="modal-overlay" id="modalSenha">
@@ -735,7 +790,7 @@ const API = 'https://api.reidoscanais.im';
 const FALLBACK_PLAYER_BASE = 'https://rdcanais.org/';
 const STORAGE_KEY = 'i9tv_api_reidoscanais_v4';
 
-localStorage.removeItem('i9tv_canais_custom');
+try { localStorage.removeItem('i9tv_canais_custom'); } catch (e) {}
 
 let CATEGORIES = [];
 let ALL = [];
@@ -838,7 +893,7 @@ function gravarCacheShared() {
 async function carregarShared() {
   if (!nuvemAtiva()) { lerCacheShared(); return false; }
   try {
-    const res = await fetch(`${FIREBASE_URL}/i9tv.json`, { cache: 'no-store' });
+    const res = await fetchTimeout(`${FIREBASE_URL}/i9tv.json`, { cache: 'no-store' }, 6000);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     SHARED = normalizarShared(await res.json());
     gravarCacheShared();
@@ -880,7 +935,8 @@ async function escreverShared(caminho, valor) {
 
 // Envia para a nuvem os canais que você já criou antes neste aparelho
 async function migrarExtrasAntigos() {
-  const antigo = localStorage.getItem(STORAGE_KEY + '_extras');
+  let antigo = null;
+  try { antigo = localStorage.getItem(STORAGE_KEY + '_extras'); } catch (e) {}
   if (!antigo || !nuvemAtiva()) return;
   let tudoOk = true;
   try {
@@ -893,7 +949,7 @@ async function migrarExtrasAntigos() {
       }
     }
   } catch (e) { tudoOk = false; }
-  if (tudoOk) localStorage.removeItem(STORAGE_KEY + '_extras');
+  if (tudoOk) { try { localStorage.removeItem(STORAGE_KEY + '_extras'); } catch (e) {} }
 }
 
 async function verificarAtualizacoes() {
@@ -901,7 +957,7 @@ async function verificarAtualizacoes() {
   if (document.getElementById('modalCanal').classList.contains('show')) return;
   if (document.getElementById('modalSenha').classList.contains('show')) return;
   try {
-    const res = await fetch(`${FIREBASE_URL}/i9tv.json`, { cache: 'no-store' });
+    const res = await fetchTimeout(`${FIREBASE_URL}/i9tv.json`, { cache: 'no-store' }, 8000);
     if (!res.ok) return;
     const novo = normalizarShared(await res.json());
     if (JSON.stringify(novo) !== JSON.stringify(SHARED)) {
@@ -919,21 +975,94 @@ document.addEventListener('visibilitychange', () => {
 // ==========================================
 // CARREGAMENTO DA API + MONTAGEM DAS CATEGORIAS
 // ==========================================
+// ==========================================
+// REDE: TEMPO LIMITE, CACHE E MENSAGENS CLARAS
+// ==========================================
+const API_CACHE_KEY = STORAGE_KEY + '_api_cache';
+let erroCarregamento = false;
+
+function fetchTimeout(url, opts, ms) {
+  opts = opts || {};
+  if (typeof AbortController === 'undefined') return fetch(url, opts);
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, Object.assign({}, opts, { signal: ctrl.signal }))
+    .then(r => { clearTimeout(t); return r; }, e => { clearTimeout(t); throw e; });
+}
+
+function lerCacheApi() {
+  try {
+    const c = JSON.parse(localStorage.getItem(API_CACHE_KEY) || 'null');
+    if (c && c.success && Array.isArray(c.data) && c.data.length) return c;
+  } catch (e) {}
+  return null;
+}
+
+function explicarErro(err) {
+  if (!err) return 'Erro desconhecido';
+  if (err.name === 'AbortError') return 'A API não respondeu a tempo (mais de 15 segundos).';
+  const m = String(err.message || err);
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) {
+    return 'Sem conexão com a API. Pode ser a internet da TV, o DNS, o relógio da TV errado (isso quebra o HTTPS) ou o endereço bloqueado na rede.';
+  }
+  return m;
+}
+
+function infoAparelho() {
+  const ua = navigator.userAgent || '';
+  const m = ua.match(/Chrome\/(\d+)/);
+  const chrome = m ? 'Chrome ' + m[1] : 'navegador desconhecido';
+  let hora = '';
+  try { hora = new Date().toLocaleString('pt-BR'); } catch (e) {}
+  const online = navigator.onLine === false ? ' · SEM REDE' : '';
+  return `Navegador da TV: ${chrome} · Data/hora da TV: ${hora}${online}`;
+}
+
+function statusTV(titulo, detalhe, erro) {
+  erroCarregamento = !!erro;
+  const el = document.getElementById('tvStatus');
+  document.getElementById('tvStatusTitle').textContent = titulo;
+  document.getElementById('tvStatusDetail').textContent = detalhe || '';
+  document.getElementById('tvStatusHint').style.display = erro ? 'block' : 'none';
+  document.getElementById('tvStatusInfo').textContent = infoAparelho();
+  el.classList.toggle('erro', !!erro);
+  el.classList.add('show');
+  if (erro) { try { document.getElementById('tvStatusBtn').focus(); } catch (e) {} }
+}
+function esconderStatusTV() {
+  erroCarregamento = false;
+  const el = document.getElementById('tvStatus');
+  el.classList.remove('show');
+  el.classList.remove('erro');
+}
+
 async function sincronizarAPI(forcar = false) {
   channelsContainer.innerHTML = '<div class="loading-msg">⏳ Sincronizando canais...</div>';
   nowCat.textContent = "SINCRONIZANDO";
   nowName.textContent = "Buscando grade de canais...";
   nowEpg.textContent = "";
+  statusTV('Carregando canais...', 'Conectando ao banco da família', false);
 
   try {
     await carregarShared();
 
-    const res = await fetch(`${API}/channels`);
-    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
-    const json = await res.json();
-
-    if (!json.success || !Array.isArray(json.data)) {
-      throw new Error("Formato de resposta inesperado da API.");
+    statusTV('Carregando canais...', 'Buscando a lista de canais', false);
+    let json = null;
+    let usouCache = false;
+    try {
+      const res = await fetchTimeout(`${API}/channels`, {}, 15000);
+      if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+      json = await res.json();
+      if (!json.success || !Array.isArray(json.data)) {
+        throw new Error("Formato de resposta inesperado da API.");
+      }
+      try { localStorage.setItem(API_CACHE_KEY, JSON.stringify(json)); } catch (e) {}
+    } catch (errApi) {
+      const guardada = lerCacheApi();
+      if (!guardada) throw errApi;
+      console.warn('API indisponível, usando a última lista salva:', errApi);
+      json = guardada;
+      usouCache = true;
     }
 
     API_CANAIS = [];
@@ -979,17 +1108,22 @@ async function sincronizarAPI(forcar = false) {
 
     reconstruir(false);
 
+    esconderStatusTV();
+
     if (CATEGORIES.length > 0 && CATEGORIES[0].channels.length > 0) {
       playChannel(0, 0);
+      if (usouCache) tvAviso('API fora do ar: usando a última lista salva');
     } else {
       channelsContainer.innerHTML = '<div class="loading-msg">Nenhum canal disponível no momento.</div>';
     }
 
   } catch (err) {
     console.error("Falha ao carregar API:", err);
+    const motivo = explicarErro(err);
     nowCat.textContent = "ERRO DE CONEXÃO";
     nowName.textContent = "Não foi possível carregar a API";
-    nowEpg.textContent = err.message;
+    nowEpg.textContent = motivo;
+    statusTV('Não foi possível carregar os canais', motivo, true);
     channelsContainer.innerHTML = `
       <div class="loading-msg">
         ❌ Falha ao conectar em <b>${API}/channels</b>.<br><br>
@@ -1131,7 +1265,7 @@ function carregarStreamUrl(streamUrl) {
     videoEl.style.display = 'block';
     videoEl.src = '';
     
-    if (Hls.isSupported()) {
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
       hls = new Hls();
       hls.loadSource(streamUrl);
       hls.attachMedia(videoEl);
@@ -1143,6 +1277,8 @@ function carregarStreamUrl(streamUrl) {
       videoEl.addEventListener('loadedmetadata', function() {
         videoEl.play().catch(e => console.log("Erro ao dar play:", e));
       }, { once: true });
+    } else {
+      tvAviso('Player de vídeo (hls.js) não carregou. Verifique a internet.');
     }
   } else {
     videoEl.style.display = 'none';
@@ -1712,6 +1848,13 @@ document.addEventListener('keydown', (e) => {
   if (k === 'Escape' || k === 'BrowserBack' || k === 'GoBack' || kc === 4 || kc === 27 || (k === 'Backspace' && !alvoTexto)) {
     e.preventDefault();
     tratarVoltar();
+    return;
+  }
+
+  // Falha ao carregar: OK tenta de novo
+  if (erroCarregamento && (k === 'Enter' || k === ' ' || kc === 13)) {
+    e.preventDefault();
+    sincronizarAPI(true);
     return;
   }
 
