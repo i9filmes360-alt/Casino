@@ -345,6 +345,17 @@
     aspect-ratio: auto;
     border-radius: 0;
   }
+  .player-wrapper.fs-sim {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9000;
+    max-width: 100%; width: 100vw; height: 100vh; height: 100dvh; margin: 0;
+    background: #000; display: flex; justify-content: center; align-items: center;
+  }
+  .player-wrapper.fs-sim .player-frame { height: 100%; width: 100%; aspect-ratio: auto; border-radius: 0; }
+  .player-wrapper.fs-sim .player-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(18, 23, 36, 0.85); backdrop-filter: blur(10px);
+    border: none; border-radius: 0; z-index: 1000;
+  }
   .player-wrapper:fullscreen .player-bar {
     position: absolute;
     bottom: 0;
@@ -523,6 +534,8 @@
   html.tv .brand h1 { font-size: clamp(22px, 2vw, 34px); }
   html.tv .brand .btn-add-channel { display: none; }
   html.tv .btn-sync { font-size: clamp(14px, 1.2vw, 22px); padding: 8px 14px; }
+  .btn-play-tv { display: none; }
+  html.tv .btn-play-tv { display: inline-flex; }
 
   html.tv .search-box { padding: 10px 16px; }
   html.tv .search-box input { font-size: clamp(15px, 1.3vw, 24px); padding: 10px 14px; }
@@ -619,6 +632,7 @@
         <h1><span>i9</span>tv</h1>
       </div>
       <div class="brand-actions">
+        <button class="btn-sync btn-play-tv" id="btnPlayTV" onclick="forcarToquePlayer()" title="Dar play no canal">▶ Play</button>
         <button class="btn-sync" id="btnModoTV" onclick="alternarModoTV()" title="Alternar Modo TV">📺 TV</button>
         <button class="btn-sync" onclick="sincronizarAPI(true)" title="Atualizar lista da API">🔄</button>
         <button class="btn-add-channel" onclick="abrirSenha('add')">➕ Canal</button>
@@ -675,7 +689,7 @@
     <div class="tv-info-name" id="tvInfoName"></div>
     <div class="tv-info-epg" id="tvInfoEpg"></div>
   </div>
-  <div class="tv-info-hint">▲ ▼ trocar canal<br>◀ ▶ trocar servidor<br>OK abrir lista</div>
+  <div class="tv-info-hint">▲ ▼ trocar canal<br>◀ ▶ trocar servidor<br>OK abrir lista · ▶ Play na lista</div>
 </div>
 <div class="tv-toast" id="tvToast"></div>
 <div class="tv-status" id="tvStatus">
@@ -1243,6 +1257,7 @@ function renderTabs() {
 // ==========================================
 function carregarStreamUrl(streamUrl) {
   if (!streamUrl) return;
+  cancelarAutoPlay();
   if (hls) {
     hls.destroy();
     hls = null;
@@ -1286,6 +1301,7 @@ function carregarStreamUrl(streamUrl) {
     videoEl.src = '';
     iframeEl.style.display = 'block';
     iframeEl.src = streamUrl;
+    agendarAutoPlay();
   }
 }
 
@@ -1603,25 +1619,45 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") prevChannel();
 });
 
+// Tela cheia: usa a do navegador; se o WebView do APK não permitir, usa uma "tela cheia simulada"
+function emTelaCheia() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement || playerWrapper.classList.contains('fs-sim'));
+}
+
+function atualizarBotaoTelaCheia() {
+  const on = emTelaCheia();
+  fsBtn.innerHTML = on ? '✖' : '⛶';
+  fsBtn.title = on ? "Sair da Tela Cheia" : "Tela Cheia";
+}
+
+function telaCheiaSimulada(on) {
+  playerWrapper.classList.toggle('fs-sim', on);
+  atualizarBotaoTelaCheia();
+}
+
 fsBtn.onclick = () => {
-  if (!document.fullscreenElement) {
-    if (playerWrapper.requestFullscreen) playerWrapper.requestFullscreen();
-    else if (playerWrapper.webkitRequestFullscreen) playerWrapper.webkitRequestFullscreen();
-  } else {
-    if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  if (emTelaCheia()) {
+    if (playerWrapper.classList.contains('fs-sim')) telaCheiaSimulada(false);
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen();
+    } catch (e) {}
+    return;
   }
+  const pedir = playerWrapper.requestFullscreen || playerWrapper.webkitRequestFullscreen;
+  const plantaB = () => {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) telaCheiaSimulada(true);
+  };
+  if (!pedir) { plantaB(); return; }
+  try {
+    const r = pedir.call(playerWrapper);
+    if (r && r.catch) r.catch(plantaB);
+    setTimeout(plantaB, 700);
+  } catch (e) { plantaB(); }
 };
 
-document.addEventListener('fullscreenchange', () => {
-  if (document.fullscreenElement) {
-    fsBtn.innerHTML = '✖';
-    fsBtn.title = "Sair da Tela Cheia";
-  } else {
-    fsBtn.innerHTML = '⛶';
-    fsBtn.title = "Tela Cheia";
-  }
-});
+document.addEventListener('fullscreenchange', atualizarBotaoTelaCheia);
+document.addEventListener('webkitfullscreenchange', atualizarBotaoTelaCheia);
 
 let touchStartX = 0;
 let touchStartY = 0;
@@ -1645,6 +1681,57 @@ document.addEventListener('touchend', (e) => {
     else prevChannel();
   }
 }, { passive: true });
+
+// ==========================================
+// PLAY AUTOMÁTICO (só no app Android instalado)
+// ==========================================
+// O player do canal fica dentro de um iframe de outro site e quase sempre espera um clique em "play".
+// O app Android (ponte "AndroidApp") faz esse toque no centro do player. Antes de tocar, ele
+// confere se já existe áudio tocando, para não pausar um canal que já começou sozinho.
+let timersAutoPlay = [];
+
+function temPonteAndroid() {
+  return !!(window.AndroidApp && typeof window.AndroidApp.tocar === 'function');
+}
+
+function cancelarAutoPlay() {
+  timersAutoPlay.forEach(clearTimeout);
+  timersAutoPlay = [];
+}
+
+function agendarAutoPlay() {
+  cancelarAutoPlay();
+  if (!temPonteAndroid()) return;
+  [4000, 9000].forEach(ms => timersAutoPlay.push(setTimeout(tentarAutoPlay, ms)));
+}
+
+function tentarAutoPlay() {
+  try {
+    if (menuTVAberto || document.querySelector('.modal-overlay.show')) return;
+    if (window.AndroidApp.estaTocando && window.AndroidApp.estaTocando()) return;
+    tocarNoPlayer();
+  } catch (e) { console.warn('Play automático falhou:', e); }
+}
+
+function tocarNoPlayer() {
+  if (!temPonteAndroid() || iframeEl.style.display === 'none') return false;
+  const r = iframeEl.getBoundingClientRect();
+  if (!r.width || !r.height) return false;
+  const k = window.devicePixelRatio || 1;
+  window.AndroidApp.tocar((r.left + r.width / 2) * k, (r.top + r.height / 2) * k);
+  return true;
+}
+
+// Botão "▶ Play" / tecla de mídia: toque manual no player
+function forcarToquePlayer() {
+  if (!temPonteAndroid()) {
+    tvAviso('Dar play pelo controle só funciona no app instalado');
+    return;
+  }
+  if (iframeEl.style.display === 'none') { tvAviso('Este canal toca sozinho'); return; }
+  if (menuTVAberto) fecharMenuTV();
+  setTimeout(() => { if (tocarNoPlayer()) tvAviso('▶ Play'); }, 350);
+}
 
 // ==========================================
 // MODO TV (CONTROLE REMOTO)
@@ -1674,6 +1761,7 @@ let timerInfoTV = null;
 let timerToastTV = null;
 let ultimoVoltar = 0;
 let ultimoVoltarEvento = 0;
+let historicoTV = false;
 
 const tvInfoEl = document.getElementById('tvInfo');
 const tvToastEl = document.getElementById('tvToast');
@@ -1687,10 +1775,14 @@ function aplicarModoTV(ativo) {
     document.documentElement.classList.remove('menu-open');
     tvInfoEl.classList.remove('show');
   }
-  // o foco nunca deve ficar preso dentro do player
-  iframeEl.tabIndex = -1;
-  videoEl.tabIndex = -1;
   if (ativo) {
+    // o foco nunca deve ficar preso dentro do player
+    iframeEl.tabIndex = -1;
+    videoEl.tabIndex = -1;
+    if (!historicoTV) {
+      historicoTV = true;
+      try { history.pushState({ tv: 1 }, ''); } catch (e) {}
+    }
     try { document.body.tabIndex = -1; document.body.focus(); } catch (e) {}
     if (CATEGORIES.length) {
       const ch = CATEGORIES[currentCatIndex]?.channels[currentChanIndex];
@@ -1836,7 +1928,6 @@ window.addEventListener('popstate', () => {
   tratarVoltar();
   if (!jaDeuVoltaDuasVezes) { try { history.pushState({ tv: 1 }, ''); } catch (e) {} }
 });
-try { history.pushState({ tv: 1 }, ''); } catch (e) {}
 
 document.addEventListener('keydown', (e) => {
   if (!IS_TV) return;
@@ -1887,7 +1978,9 @@ document.addEventListener('keydown', (e) => {
       e.preventDefault(); mudarServidor(-1); break;
     case k === 'ArrowRight':
       e.preventDefault(); mudarServidor(1); break;
-    case k === 'Enter' || k === ' ' || k === 'ContextMenu' || k === 'Info' || kc === 82 || k === 'MediaPlayPause':
+    case k === 'MediaPlay' || k === 'MediaPlayPause' || k === 'MediaPause' || kc === 85 || kc === 126 || kc === 127:
+      e.preventDefault(); forcarToquePlayer(); break;
+    case k === 'Enter' || k === ' ' || k === 'ContextMenu' || k === 'Info' || kc === 82:
       e.preventDefault(); abrirMenuTV(); break;
   }
 }, true);
