@@ -632,6 +632,7 @@
         <h1><span>i9</span>tv</h1>
       </div>
       <div class="brand-actions">
+        <button class="btn-sync" id="btnFiltroAnuncios" onclick="alternarFiltroAnuncios()" style="display:none" title="Liga/desliga o bloqueio de anúncios">🚫 Anúncios</button>
         <button class="btn-sync btn-play-tv" id="btnPlayTV" onclick="forcarToquePlayer()" title="Dar play no canal">▶ Play</button>
         <button class="btn-sync" id="btnModoTV" onclick="alternarModoTV()" title="Alternar Modo TV">📺 TV</button>
         <button class="btn-sync" onclick="sincronizarAPI(true)" title="Atualizar lista da API">🔄</button>
@@ -1300,7 +1301,7 @@ function carregarStreamUrl(streamUrl) {
     videoEl.pause();
     videoEl.src = '';
     iframeEl.style.display = 'block';
-    iframeEl.src = streamUrl;
+    iframeEl.src = normalizarUrlYoutube(streamUrl);
     agendarAutoPlay();
   }
 }
@@ -1683,6 +1684,72 @@ document.addEventListener('touchend', (e) => {
 }, { passive: true });
 
 // ==========================================
+// YOUTUBE: LINKS E FILTRO DE ANÚNCIOS
+// ==========================================
+// Transforma links do YouTube (watch, youtu.be, live, shorts) em links "embed", que podem ser
+// mostrados dentro do app, e liga o início automático, sem vídeos sugeridos no final.
+function normalizarUrlYoutube(url) {
+  try {
+    const u = new URL(url, location.href);
+    const host = u.hostname.replace(/^(www|m|music)\./, '');
+    if (host !== 'youtube.com' && host !== 'youtu.be' && host !== 'youtube-nocookie.com') return url;
+
+    let id = null;
+    if (host === 'youtu.be') {
+      id = u.pathname.split('/')[1] || null;
+    } else if (u.pathname === '/watch') {
+      id = u.searchParams.get('v');
+    } else {
+      const m = u.pathname.match(/^\/(embed|live|shorts|v)\/([\w-]{11})/);
+      if (m) id = m[2];
+    }
+
+    // Lista de reprodução ou transmissão de canal (live_stream): mantém o endereço como está
+    if (!id || !/^[\w-]{11}$/.test(id)) return url;
+
+    const novo = new URL(`https://${host === 'youtube-nocookie.com' ? 'www.youtube-nocookie.com' : 'www.youtube.com'}/embed/${id}`);
+    // mantém parâmetros que o próprio link já tinha (start, list, mute, loop...)
+    u.searchParams.forEach((valor, chave) => { if (chave !== 'v') novo.searchParams.set(chave, valor); });
+    const padrao = { autoplay: '1', rel: '0', modestbranding: '1', playsinline: '1', iv_load_policy: '3' };
+    Object.keys(padrao).forEach(k => { if (!novo.searchParams.has(k)) novo.searchParams.set(k, padrao[k]); });
+    return novo.toString();
+  } catch (e) {
+    return url;
+  }
+}
+
+// Filtro de anúncios (funciona no app instalado): o Android bloqueia os pedidos de anúncio do Google/YouTube.
+const CHAVE_FILTRO_ANUNCIOS = 'i9tv_filtro_anuncios';
+
+function filtroAnunciosLigado() {
+  try { return localStorage.getItem(CHAVE_FILTRO_ANUNCIOS) !== '0'; } catch (e) { return true; }
+}
+
+function aplicarFiltroAnuncios() {
+  const ligado = filtroAnunciosLigado();
+  const botao = document.getElementById('btnFiltroAnuncios');
+  if (botao) {
+    botao.textContent = ligado ? '🚫 Anúncios: bloqueando' : '🚫 Anúncios: liberados';
+    botao.style.display = temPonteAndroid() ? '' : 'none';
+  }
+  try {
+    if (temPonteAndroid() && typeof window.AndroidApp.definirFiltroAnuncios === 'function') {
+      window.AndroidApp.definirFiltroAnuncios(ligado);
+    }
+  } catch (e) {}
+}
+
+function alternarFiltroAnuncios() {
+  const novo = !filtroAnunciosLigado();
+  try { localStorage.setItem(CHAVE_FILTRO_ANUNCIOS, novo ? '1' : '0'); } catch (e) {}
+  aplicarFiltroAnuncios();
+  tvAviso(novo ? 'Bloqueio de anúncios LIGADO' : 'Bloqueio de anúncios DESLIGADO');
+  // recarrega o canal atual para o novo ajuste valer
+  const ch = CATEGORIES[currentCatIndex] && CATEGORIES[currentCatIndex].channels[currentChanIndex];
+  if (ch) { carregarStreamUrl(ch.url); }
+}
+
+// ==========================================
 // PLAY AUTOMÁTICO (só no app Android instalado)
 // ==========================================
 // O player do canal fica dentro de um iframe de outro site e quase sempre espera um clique em "play".
@@ -1996,6 +2063,7 @@ window.addEventListener('blur', () => {
 });
 
 aplicarModoTV(IS_TV);
+aplicarFiltroAnuncios();
 
 // Inicialização automática via API
 sincronizarAPI(false);
